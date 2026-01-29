@@ -64,7 +64,9 @@ pub async fn get_playback_state(State(state): State<Arc<ServerState>>) -> Json<P
     })
 }
 
+/// Load game request (for future typed input)
 #[derive(Deserialize)]
+#[allow(dead_code)]
 pub struct LoadGameRequest {
     pub path: Option<String>,
     pub record: Option<Value>,
@@ -174,7 +176,7 @@ pub async fn playback_forward(State(state): State<Arc<ServerState>>) -> Json<Val
 /// Step backward one move
 pub async fn playback_backward(State(state): State<Arc<ServerState>>) -> Json<Value> {
     // To go backward, we need to rebuild from initial state
-    let (target_index, total_moves, moves, initial_pieces) = {
+    let (target_index, _total_moves, moves, initial_pieces) = {
         let playback = state.playback.read().unwrap();
         if !playback.active {
             return Json(json!({ "error": "No active playback" }));

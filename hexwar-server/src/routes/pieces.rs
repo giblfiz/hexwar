@@ -7,8 +7,9 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
-/// Piece type info for the UI
+/// Piece type info for the UI (for future typed responses)
 #[derive(Serialize)]
+#[allow(dead_code)]
 pub struct PieceTypeInfo {
     pub id: &'static str,
     pub name: &'static str,
