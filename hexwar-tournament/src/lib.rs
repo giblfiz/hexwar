@@ -1,65 +1,25 @@
 //! HEXWAR Tournament - Fitness evaluation through game playing
 //!
 //! This crate provides tournament infrastructure:
-//! - Game running (CPU or GPU)
-//! - Fitness calculation
-//! - Matchup management
+//! - Match play between rulesets
+//! - Fitness evaluation against opponent pools
+//! - Tournament formats (round-robin, Swiss)
+//!
+//! ## Architecture (4-layer granularity)
+//!
+//! - Level 1: run_tournament (orchestration)
+//! - Level 2: evaluate_fitness, play_match (phases)
+//! - Level 3: play_game, compute_fitness (steps)
+//! - Level 4: utilities, configuration
 
-// TODO: Agent 4 will port from hexwar/tournament.py
+mod config;
+mod fitness;
+mod game_runner;
+mod match_play;
+mod tournament;
 
-use hexwar_core::RuleSet;
-
-/// Tournament configuration
-#[derive(Clone, Debug)]
-pub struct TournamentConfig {
-    pub games_per_matchup: usize,
-    pub depth: u32,
-    pub use_gpu: bool,
-    pub workers: usize,
-}
-
-impl Default for TournamentConfig {
-    fn default() -> Self {
-        Self {
-            games_per_matchup: 10,
-            depth: 4,
-            use_gpu: true,
-            workers: 8,
-        }
-    }
-}
-
-/// Result of fitness evaluation
-#[derive(Clone, Debug)]
-pub struct FitnessResult {
-    pub wins: u32,
-    pub losses: u32,
-    pub draws: u32,
-    pub avg_rounds: f32,
-    pub fitness_score: f32,
-}
-
-/// Tournament runner
-pub struct Tournament {
-    config: TournamentConfig,
-}
-
-impl Tournament {
-    pub fn new(config: TournamentConfig) -> Self {
-        Self { config }
-    }
-
-    /// Evaluate fitness of candidate against fixed opponent
-    pub fn evaluate_vs_fixed(
-        &self,
-        _candidate: &RuleSet,
-        _opponent: &RuleSet,
-    ) -> FitnessResult {
-        todo!("Agent 4: Implement fitness evaluation")
-    }
-
-    /// Round-robin tournament
-    pub fn round_robin(&self, _population: &[RuleSet]) -> Vec<FitnessResult> {
-        todo!("Agent 4: Implement round-robin")
-    }
-}
+pub use config::{AiConfig, EvalConfig, PlayerType, TournamentConfig, TournamentFormat};
+pub use fitness::{evaluate_fitness, FitnessResult};
+pub use game_runner::GameRunner;
+pub use match_play::{play_match, MatchResult};
+pub use tournament::{run_tournament, TournamentResult, Standing};
