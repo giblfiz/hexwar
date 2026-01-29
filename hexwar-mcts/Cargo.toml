@@ -16,3 +16,7 @@ parallel = ["rayon"]
 [dependencies.rayon]
 version = "1.10"
 optional = true
+
+[[bench]]
+name = "compare_players"
+harness = false
