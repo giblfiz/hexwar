@@ -1,0 +1,9 @@
+[package]
+name = "hexwar-tournament"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+hexwar-core = { path = "../hexwar-core" }
+hexwar-mcts = { path = "../hexwar-mcts" }
+rayon = { workspace = true }

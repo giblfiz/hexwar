@@ -1,0 +1,12 @@
+[package]
+name = "hexwar-gpu"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+hexwar-core = { path = "../hexwar-core" }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# CUDA bindings - Agent 2 will set this up
+# cudarc = "0.10"

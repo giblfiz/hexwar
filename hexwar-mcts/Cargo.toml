@@ -1,0 +1,9 @@
+[package]
+name = "hexwar-mcts"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+hexwar-core = { path = "../hexwar-core" }
+hexwar-gpu = { path = "../hexwar-gpu" }
+rand = { workspace = true }

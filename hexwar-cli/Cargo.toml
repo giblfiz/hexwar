@@ -1,0 +1,21 @@
+[package]
+name = "hexwar-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "hexwar"
+path = "src/main.rs"
+
+[dependencies]
+hexwar-core = { path = "../hexwar-core" }
+hexwar-gpu = { path = "../hexwar-gpu" }
+hexwar-evolve = { path = "../hexwar-evolve" }
+hexwar-tournament = { path = "../hexwar-tournament" }
+hexwar-mcts = { path = "../hexwar-mcts" }
+hexwar-server = { path = "../hexwar-server" }
+clap = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }

@@ -33,4 +33,5 @@ balance_*/
 archive/
 
 # Rust build artifacts
+target/
 hexwar_core/target/

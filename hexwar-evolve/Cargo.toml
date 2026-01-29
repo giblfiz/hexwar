@@ -1,0 +1,9 @@
+[package]
+name = "hexwar-evolve"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+hexwar-core = { path = "../hexwar-core" }
+rand = { workspace = true }
+rand_chacha = { workspace = true }
