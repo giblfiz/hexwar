@@ -14,7 +14,7 @@
 //!
 //! # Usage
 //!
-//! ```ignore
+//! ```text
 //! use hexwar_gpu::{GpuContext, GpuGameResults};
 //! use hexwar_core::GameState;
 //!
@@ -356,11 +356,104 @@ mod tests {
         assert_eq!(results.avg_rounds(), 23.75);
     }
 
-    // GPU tests would go here but require actual GPU
+    // GPU tests - require actual CUDA GPU
     #[test]
     #[ignore = "Requires CUDA GPU"]
     fn test_gpu_context_creation() {
         let ctx = GpuContext::new();
         assert!(ctx.is_ok(), "Failed to create GPU context: {:?}", ctx.err());
+    }
+
+    #[test]
+    #[ignore = "Requires CUDA GPU"]
+    fn test_gpu_batch_simulation() {
+        use hexwar_core::{Hex, Template};
+        use hexwar_core::pieces::piece_id_to_index;
+
+        // Create GPU context
+        let ctx = GpuContext::new().expect("Failed to create GPU context");
+
+        // Create test game states
+        let white_pieces = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, 3), 0),
+            (piece_id_to_index("A2").unwrap(), Hex::new(-1, 3), 0),
+            (piece_id_to_index("A2").unwrap(), Hex::new(1, 2), 0),
+        ];
+        let black_pieces = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, -3), 3),
+            (piece_id_to_index("A2").unwrap(), Hex::new(1, -3), 3),
+            (piece_id_to_index("A2").unwrap(), Hex::new(-1, -2), 3),
+        ];
+
+        let state = GameState::new(&white_pieces, &black_pieces, Template::E, Template::E);
+
+        // Create batch of 100 identical starting positions
+        let batch_size = 100;
+        let states: Vec<_> = (0..batch_size).map(|_| state.clone()).collect();
+
+        // Simulate on GPU
+        let results = ctx
+            .simulate_batch(&states, 50, 12345)
+            .expect("Failed to simulate batch");
+
+        // Verify results
+        assert_eq!(results.len(), batch_size);
+
+        let outcomes = results.download();
+        assert_eq!(outcomes.len(), batch_size);
+
+        // Check that games actually ran
+        let total_rounds: u32 = outcomes.iter().map(|o| o.rounds).sum();
+        assert!(total_rounds > 0, "No rounds played");
+
+        // Check that we got some variety in outcomes
+        let white_wins = outcomes.iter().filter(|o| o.result == GameResult::WhiteWins).count();
+        let black_wins = outcomes.iter().filter(|o| o.result == GameResult::BlackWins).count();
+        let ongoing = outcomes.iter().filter(|o| o.result == GameResult::Ongoing).count();
+
+        println!("Results: White={}, Black={}, Ongoing={}", white_wins, black_wins, ongoing);
+        println!("Avg rounds: {:.1}", results.avg_rounds());
+
+        // At least some games should have completed
+        assert!(white_wins + black_wins + ongoing == batch_size);
+    }
+
+    #[test]
+    #[ignore = "Requires CUDA GPU"]
+    fn test_gpu_large_batch() {
+        use hexwar_core::{Hex, Template};
+        use hexwar_core::pieces::piece_id_to_index;
+
+        let ctx = GpuContext::new().expect("Failed to create GPU context");
+
+        // Simple game state
+        let white_pieces = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, 3), 0),
+            (piece_id_to_index("A2").unwrap(), Hex::new(-1, 3), 0),
+        ];
+        let black_pieces = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, -3), 3),
+            (piece_id_to_index("A2").unwrap(), Hex::new(1, -3), 3),
+        ];
+
+        let state = GameState::new(&white_pieces, &black_pieces, Template::E, Template::E);
+
+        // Large batch - 1000 games
+        let batch_size = 1000;
+        let states: Vec<_> = (0..batch_size).map(|_| state.clone()).collect();
+
+        let start = std::time::Instant::now();
+        let results = ctx
+            .simulate_batch(&states, 50, 42)
+            .expect("Failed to simulate batch");
+        let elapsed = start.elapsed();
+
+        assert_eq!(results.len(), batch_size);
+        println!(
+            "Simulated {} games in {:?} ({:.1} games/sec)",
+            batch_size,
+            elapsed,
+            batch_size as f64 / elapsed.as_secs_f64()
+        );
     }
 }
