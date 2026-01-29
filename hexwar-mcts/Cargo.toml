@@ -7,3 +7,12 @@ edition.workspace = true
 hexwar-core = { path = "../hexwar-core" }
 hexwar-gpu = { path = "../hexwar-gpu" }
 rand = { workspace = true }
+rand_chacha = { workspace = true }
+
+[features]
+default = []
+parallel = ["rayon"]
+
+[dependencies.rayon]
+version = "1.10"
+optional = true

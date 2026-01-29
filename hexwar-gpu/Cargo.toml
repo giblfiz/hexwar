@@ -7,6 +7,10 @@ edition.workspace = true
 hexwar-core = { path = "../hexwar-core" }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
+rand = { workspace = true }
 
-# CUDA bindings - Agent 2 will set this up
-# cudarc = "0.10"
+# CUDA bindings - cudarc provides safe CUDA abstractions
+cudarc = { version = "0.12", features = ["std", "driver", "nvrtc", "cuda-12040"] }
+
+# For compact data structures
+bytemuck = { version = "1.14", features = ["derive"] }
