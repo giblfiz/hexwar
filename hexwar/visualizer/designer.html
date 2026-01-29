@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEXWAR Board Designer</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            user-select: none;
+        }
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin: 5px 0 10px 0;
+            font-size: 1.5em;
+        }
+        .main-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .bench {
+            background: #16213e;
+            padding: 10px;
+            border-radius: 8px;
+            width: 220px;
+            flex-shrink: 0;
+        }
+        .bench h3 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            text-align: center;
+        }
+        .bench.white h3 { color: #fff; }
+        .bench.black h3 { color: #666; }
+        .bench-section {
+            margin-bottom: 10px;
+        }
+        .bench-section-title {
+            font-size: 10px;
+            color: #555;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .bench-pieces {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .bench-piece {
+            width: 32px;
+            height: 32px;
+            background: #2a2a4a;
+            border: 2px solid #444;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: grab;
+            transition: all 0.15s;
+        }
+        .bench-piece:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .bench-piece.white {
+            background: #e8e8e8;
+            color: #333;
+            border-color: #fff;
+        }
+        .bench-piece.black {
+            background: #2a2a2a;
+            color: #ddd;
+            border-color: #555;
+        }
+        .bench-piece.king {
+            border-color: gold;
+            border-width: 3px;
+        }
+        .bench-piece.dragging {
+            opacity: 0.5;
+        }
+        .board-area {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 12px;
+            position: relative;
+        }
+        svg.board {
+            display: block;
+        }
+        .hex {
+            fill: #2a2a4a;
+            stroke: #444;
+            stroke-width: 1;
+            cursor: pointer;
+            transition: fill 0.1s;
+        }
+        .hex:hover {
+            fill: #3a3a6a;
+        }
+        .hex.white-home { fill: #2a3a4a; }
+        .hex.white-home:hover { fill: #3a4a5a; }
+        .hex.black-home { fill: #3a2a4a; }
+        .hex.black-home:hover { fill: #4a3a5a; }
+        .hex.drop-target {
+            fill: #4a6a4a !important;
+            stroke: #0f0;
+            stroke-width: 2;
+        }
+        .hex.move-highlight {
+            fill: #2a4a2a !important;
+        }
+        .hex.capture-highlight {
+            fill: #4a2a2a !important;
+        }
+        .hex.move-target {
+            fill: #3a4a6a !important;
+            stroke: #00d4ff;
+            stroke-width: 2;
+            cursor: crosshair;
+        }
+        .piece-group {
+            cursor: grab;
+            pointer-events: all;
+        }
+        .piece-group:hover {
+            filter: brightness(1.2);
+        }
+        .piece-group.dragging {
+            opacity: 0.5;
+        }
+        .piece-hex {
+            stroke-width: 2;
+        }
+        .piece-hex.white {
+            fill: #e8e8e8;
+            stroke: #fff;
+        }
+        .piece-hex.black {
+            fill: #2a2a2a;
+            stroke: #555;
+        }
+        .piece-hex.king {
+            stroke: gold;
+            stroke-width: 3;
+        }
+        .facing-dot { fill: #ff3333; }
+        .move-arrow { fill: #00cc66; }
+        .piece-label {
+            font-size: 9px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .piece-label.white { fill: #333; }
+        .piece-label.black { fill: #ddd; }
+        .piece-range {
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .piece-range.white { fill: #333; }
+        .piece-range.black { fill: #ddd; }
+        .piece-special {
+            font-size: 10px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .coord-label {
+            font-size: 7px;
+            fill: #444;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        /* Context Menu */
+        .context-menu {
+            display: none;
+            position: fixed;
+            background: #16213e;
+            border: 1px solid #00d4ff;
+            border-radius: 6px;
+            padding: 5px 0;
+            min-width: 150px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .context-menu.visible {
+            display: block;
+        }
+        .context-menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .context-menu-item:hover {
+            background: #0f3460;
+        }
+        .context-menu-divider {
+            height: 1px;
+            background: #333;
+            margin: 5px 0;
+        }
+        /* Graveyard */
+        .graveyard {
+            background: #16213e;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+        }
+        .graveyard-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .graveyard-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .graveyard-pieces {
+            display: flex;
+            gap: 4px;
+            min-height: 30px;
+            padding: 4px;
+            background: #0f0f1f;
+            border-radius: 4px;
+            min-width: 100px;
+        }
+        .graveyard-piece {
+            width: 28px;
+            height: 28px;
+            background: #2a2a4a;
+            border: 1px solid #444;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        .graveyard-piece.white {
+            background: #888;
+            color: #333;
+        }
+        .graveyard-piece.black {
+            background: #333;
+            color: #888;
+        }
+        /* Status bar */
+        .status-bar {
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+        .status-bar .sync-status {
+            color: #0f0;
+        }
+        .status-bar .sync-status.pending {
+            color: #ff0;
+        }
+        /* Board name text box */
+        .board-name-container {
+            text-align: center;
+            margin: 5px auto 10px auto;
+            max-width: 400px;
+        }
+        .board-name-input {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-family: inherit;
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 6px;
+            color: #00d4ff;
+            text-align: center;
+            outline: none;
+        }
+        .board-name-input:focus {
+            border-color: #00d4ff;
+        }
+        .board-name-input::placeholder {
+            color: #555;
+        }
+        /* Drag ghost */
+        .drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.8;
+        }
+        /* Playback Controls */
+        .playback-panel {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        .playback-panel.active {
+            display: block;
+        }
+        .playback-info {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .playback-info .move-counter {
+            font-size: 18px;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+        .playback-info .player-turn {
+            color: #888;
+            margin-left: 15px;
+        }
+        .playback-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .playback-btn {
+            background: #0f3460;
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.15s;
+        }
+        .playback-btn:hover:not(:disabled) {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+        .playback-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .playback-btn.stop {
+            background: #4a1a1a;
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+        .playback-btn.stop:hover {
+            background: #ff4444;
+            color: #1a1a2e;
+        }
+        .playback-slider {
+            width: 80%;
+            max-width: 400px;
+            margin: 10px auto;
+        }
+        .playback-slider input {
+            width: 100%;
+            cursor: pointer;
+        }
+        .playback-winner {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .playback-winner.white { color: #e8e8e8; }
+        .playback-winner.black { color: #888; }
+        .playback-winner.draw { color: #888; }
+        /* Load game button */
+        .load-game-btn {
+            background: #1a3a1a;
+            border: 2px solid #00cc66;
+            color: #00cc66;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .load-game-btn:hover {
+            background: #00cc66;
+            color: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+    <h1>HEXWAR Board Designer</h1>
+
+    <div class="board-name-container">
+        <input type="text" id="boardName" class="board-name-input" placeholder="Board name..." />
+    </div>
+
+    <div class="main-container">
+        <!-- White Bench (Left) -->
+        <div class="bench white" id="white-bench">
+            <h3>White Pieces</h3>
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Board Area -->
+        <div class="board-area">
+            <svg id="game-board" class="board"></svg>
+        </div>
+
+        <!-- Black Bench (Right) -->
+        <div class="bench black" id="black-bench">
+            <h3>Black Pieces</h3>
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Graveyard -->
+    <div class="graveyard">
+        <div class="graveyard-section">
+            <span class="graveyard-label">White Captured:</span>
+            <div class="graveyard-pieces" id="white-graveyard"></div>
+        </div>
+        <div class="graveyard-section">
+            <span class="graveyard-label">Black Captured:</span>
+            <div class="graveyard-pieces" id="black-graveyard"></div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="sync-status" id="sync-status">Synced</span> |
+        <span id="piece-count">0 pieces on board</span> |
+        <button class="load-game-btn" onclick="promptLoadGame()">Load Game Record</button>
+    </div>
+
+    <!-- Playback Panel -->
+    <div class="playback-panel" id="playback-panel">
+        <div class="playback-info">
+            <span class="move-counter">Move <span id="playback-move">0</span> / <span id="playback-total">0</span></span>
+            <span class="player-turn">(<span id="playback-player">White</span>'s turn - Round <span id="playback-round">1</span>)</span>
+        </div>
+        <div class="playback-controls">
+            <button class="playback-btn" id="btn-start" onclick="playbackGotoStart()">|&lt;</button>
+            <button class="playback-btn" id="btn-back" onclick="playbackBackward()">&lt;</button>
+            <button class="playback-btn" id="btn-forward" onclick="playbackForward()">&gt;</button>
+            <button class="playback-btn" id="btn-end" onclick="playbackGotoEnd()">&gt;|</button>
+            <button class="playback-btn stop" onclick="playbackStop()">Stop</button>
+        </div>
+        <div class="playback-slider">
+            <input type="range" id="playback-range" min="0" max="100" value="0" oninput="playbackSliderChange(this.value)">
+        </div>
+        <div class="playback-winner" id="playback-winner"></div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" onclick="rotatePieceCW()">↻ Rotate Clockwise</div>
+        <div class="context-menu-item" onclick="rotatePieceCCW()">↺ Rotate Counter-CW</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="startMovePiece()">✋ Move Piece</div>
+        <div class="context-menu-item" onclick="showLegalMoves()">👁 Show Legal Moves</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="deletePiece()">🗑 Delete Piece</div>
+    </div>
+
+    <!-- Drag Ghost (hidden, used for drag visual) -->
+    <div class="drag-ghost" id="drag-ghost" style="display:none;"></div>
+
+    <script>
+        // ========== CONSTANTS ==========
+        const HEX_SIZE = 32;
+        const BOARD_RADIUS = 4;
+        const SVG_WIDTH = 520;
+        const SVG_HEIGHT = 480;
+        const CENTER_X = SVG_WIDTH / 2;
+        const CENTER_Y = SVG_HEIGHT / 2;
+
+        // Direction angles for FLAT-TOP hex
+        const DIR_ANGLES = [-90, -30, 30, 90, 150, -150];
+
+        const SPECIAL_EMOJI = {
+            'PHASED': '👻',
+            'SWAP_MOVE': '🌀',
+            'SWAP_ROTATE': '🔄',
+            'REBIRTH': '🔥'
+        };
+
+        // Piece tiers for bench organization
+        const PIECE_TIERS = {
+            'Kings': ['K1', 'K2', 'K3', 'K4', 'K5'],
+            'Pawns': ['A1', 'A2', 'A3', 'A4', 'A5'],
+            'Guards': ['B1', 'B2', 'B3', 'B4'],
+            'Striders': ['C1', 'C2', 'C3'],
+            'Sliders': ['D1', 'D2', 'D3', 'D4', 'D5'],
+            'Jumpers': ['E1', 'E2', 'F1', 'F2'],
+            'Specials': ['G1', 'W1', 'W2', 'P1']
+        };
+
+        // ========== STATE ==========
+        let pieceTypes = {};
+        let boardPieces = [];  // [{id, pieceId, color, pos: [q,r], facing}]
+        let graveyard = { white: [], black: [] };
+        let templates = { white: 'E', black: 'E' };
+
+        let dragState = null;  // {type: 'bench'|'board', pieceId, color, sourceIdx, element}
+        let selectedPiece = null;  // index into boardPieces
+        let highlightedMoves = [];  // [{q,r,type:'move'|'capture'}]
+        let movingPieceIdx = null;  // index of piece being moved (click hex to place)
+
+        let syncPending = false;
+        let lastVersion = 0;
+
+        // ========== HEX MATH ==========
+        function axialToPixel(q, r) {
+            const x = HEX_SIZE * (3/2 * q);
+            const y = HEX_SIZE * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
+            return { x: CENTER_X + x, y: CENTER_Y + y };
+        }
+
+        function pixelToAxial(px, py) {
+            const x = px - CENTER_X;
+            const y = py - CENTER_Y;
+            const q = (2/3 * x) / HEX_SIZE;
+            const r = (-1/3 * x + Math.sqrt(3)/3 * y) / HEX_SIZE;
+            return axialRound(q, r);
+        }
+
+        function axialRound(q, r) {
+            let s = -q - r;
+            let rq = Math.round(q);
+            let rr = Math.round(r);
+            let rs = Math.round(s);
+            const qDiff = Math.abs(rq - q);
+            const rDiff = Math.abs(rr - r);
+            const sDiff = Math.abs(rs - s);
+            if (qDiff > rDiff && qDiff > sDiff) {
+                rq = -rr - rs;
+            } else if (rDiff > sDiff) {
+                rr = -rq - rs;
+            }
+            return [rq, rr];
+        }
+
+        function isValidHex(q, r) {
+            return Math.abs(q) <= BOARD_RADIUS &&
+                   Math.abs(r) <= BOARD_RADIUS &&
+                   Math.abs(q + r) <= BOARD_RADIUS;
+        }
+
+        function hexDistance(q1, r1, q2, r2) {
+            return (Math.abs(q1 - q2) + Math.abs(r1 - r2) + Math.abs((q1 + r1) - (q2 + r2))) / 2;
+        }
+
+        // Determine which of 6 direction sectors a relative hex position is in
+        // Uses angle-based calculation for accuracy
+        function hexToSector(dq, dr) {
+            if (dq === 0 && dr === 0) return 0;
+            // Convert axial to pixel coordinates (pointy-top orientation)
+            const x = 1.5 * dq;
+            const y = 0.8660254 * dq + 1.7320508 * dr;  // sqrt(3)/2, sqrt(3)
+            // Calculate angle in degrees (0-360)
+            let angle = Math.atan2(y, x) * 180 / Math.PI;
+            if (angle < 0) angle += 360;
+            // Sector boundaries at 0°, 60°, 120°, 180°, 240°, 300°
+            if (angle < 60) return 2;       // SE
+            else if (angle < 120) return 3; // S
+            else if (angle < 180) return 4; // SW
+            else if (angle < 240) return 5; // NW
+            else if (angle < 300) return 0; // N
+            else return 1;                  // NE
+        }
+
+        // Iterate over all hexes at exactly `radius` distance from center
+        function* iterHexRing(centerQ, centerR, radius) {
+            const DIR_VECS = [[0,-1], [1,-1], [1,0], [0,1], [-1,1], [-1,0]];
+            if (radius === 0) { yield [centerQ, centerR]; return; }
+            let q = centerQ + DIR_VECS[4][0] * radius;
+            let r = centerR + DIR_VECS[4][1] * radius;
+            for (let dir = 0; dir < 6; dir++) {
+                for (let step = 0; step < radius; step++) {
+                    yield [q, r];
+                    q += DIR_VECS[dir][0];
+                    r += DIR_VECS[dir][1];
+                }
+            }
+        }
+
+        function hexCorners(cx, cy, size) {
+            const corners = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = Math.PI / 180 * (60 * i);
+                corners.push({
+                    x: cx + size * Math.cos(angle),
+                    y: cy + size * Math.sin(angle)
+                });
+            }
+            return corners;
+        }
+
+        function hexPath(cx, cy, size) {
+            const corners = hexCorners(cx, cy, size);
+            return corners.map((c, i) => (i === 0 ? 'M' : 'L') + c.x + ',' + c.y).join(' ') + ' Z';
+        }
+
+        function edgeMidpoint(cx, cy, size, dirIndex) {
+            const angle = Math.PI / 180 * DIR_ANGLES[dirIndex];
+            return {
+                x: cx + size * 0.75 * Math.cos(angle),
+                y: cy + size * 0.75 * Math.sin(angle)
+            };
+        }
+
+        function moveTriangle(cx, cy, size, dirIndex) {
+            const angle = Math.PI / 180 * DIR_ANGLES[dirIndex];
+            const dist = size * 0.82;
+            const tx = cx + dist * Math.cos(angle);
+            const ty = cy + dist * Math.sin(angle);
+            const triSize = 4;
+            const points = [
+                { x: tx + triSize * Math.cos(angle), y: ty + triSize * Math.sin(angle) },
+                { x: tx + triSize * Math.cos(angle + 2.3), y: ty + triSize * Math.sin(angle + 2.3) },
+                { x: tx + triSize * Math.cos(angle - 2.3), y: ty + triSize * Math.sin(angle - 2.3) }
+            ];
+            return points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ') + ' Z';
+        }
+
+        // ========== RENDERING ==========
+        function drawBoard() {
+            const svg = document.getElementById('game-board');
+            svg.setAttribute('width', SVG_WIDTH);
+            svg.setAttribute('height', SVG_HEIGHT);
+            svg.innerHTML = '';
+
+            // Draw hexes
+            for (let q = -BOARD_RADIUS; q <= BOARD_RADIUS; q++) {
+                for (let r = -BOARD_RADIUS; r <= BOARD_RADIUS; r++) {
+                    if (isValidHex(q, r)) {
+                        const { x, y } = axialToPixel(q, r);
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('d', hexPath(x, y, HEX_SIZE - 2));
+                        path.setAttribute('class', 'hex');
+                        path.setAttribute('data-q', q);
+                        path.setAttribute('data-r', r);
+
+                        if (r >= 2) path.classList.add('white-home');
+                        else if (r <= -2) path.classList.add('black-home');
+
+                        // Check for move highlights
+                        const highlight = highlightedMoves.find(m => m.q === q && m.r === r);
+                        if (highlight) {
+                            path.classList.add(highlight.type === 'capture' ? 'capture-highlight' : 'move-highlight');
+                        }
+
+                        // Highlight all hexes as targets when moving a piece
+                        if (movingPieceIdx !== null) {
+                            path.classList.add('move-target');
+                        }
+
+                        svg.appendChild(path);
+
+                        // Coord label
+                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        label.setAttribute('x', x);
+                        label.setAttribute('y', y);
+                        label.setAttribute('class', 'coord-label');
+                        label.textContent = `${q},${r}`;
+                        svg.appendChild(label);
+                    }
+                }
+            }
+
+            // Draw pieces
+            boardPieces.forEach((piece, idx) => {
+                drawPieceOnBoard(svg, piece, idx);
+            });
+
+            updatePieceCount();
+        }
+
+        function drawPieceOnBoard(svg, piece, idx) {
+            const pt = pieceTypes[piece.pieceId];
+            if (!pt) return;
+
+            const { x, y } = axialToPixel(piece.pos[0], piece.pos[1]);
+            const isKing = pt.is_king;
+            const colorClass = piece.color;
+            const pieceSize = HEX_SIZE - 5;
+
+            // Group for the piece (for dragging)
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'piece-group');
+            g.setAttribute('data-idx', idx);
+
+            // Piece hexagon
+            const hex = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            hex.setAttribute('d', hexPath(x, y, pieceSize));
+            hex.setAttribute('class', `piece-hex ${colorClass}${isKing ? ' king' : ''}`);
+            g.appendChild(hex);
+
+            // Move direction triangles
+            for (const relDir of pt.directions) {
+                const absDir = (piece.facing + relDir) % 6;
+                const tri = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tri.setAttribute('d', moveTriangle(x, y, pieceSize, absDir));
+                tri.setAttribute('class', 'move-arrow');
+                g.appendChild(tri);
+            }
+
+            // Facing dot
+            const dotPos = edgeMidpoint(x, y, pieceSize, piece.facing);
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', dotPos.x);
+            dot.setAttribute('cy', dotPos.y);
+            dot.setAttribute('r', 4);
+            dot.setAttribute('class', 'facing-dot');
+            g.appendChild(dot);
+
+            // Range number
+            if (pt.move_type !== 'NONE') {
+                const range = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                range.setAttribute('x', x);
+                range.setAttribute('y', y - 4);
+                range.setAttribute('class', `piece-range ${colorClass}`);
+                range.textContent = pt.move_range;
+                g.appendChild(range);
+            }
+
+            // Piece ID label
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', x);
+            label.setAttribute('y', y + 10);
+            label.setAttribute('class', `piece-label ${colorClass}`);
+            label.textContent = piece.pieceId;
+            g.appendChild(label);
+
+            // Special emoji
+            if (pt.special) {
+                const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                emoji.setAttribute('x', x + 10);
+                emoji.setAttribute('y', y - 10);
+                emoji.setAttribute('class', 'piece-special');
+                emoji.textContent = SPECIAL_EMOJI[pt.special] || '✨';
+                g.appendChild(emoji);
+            }
+
+            // Jump indicator
+            if (pt.move_type === 'JUMP') {
+                const jump = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                jump.setAttribute('x', x - 10);
+                jump.setAttribute('y', y - 10);
+                jump.setAttribute('class', 'piece-special');
+                jump.textContent = '🦘';
+                g.appendChild(jump);
+            }
+
+            svg.appendChild(g);
+        }
+
+        function populateBenches() {
+            ['white', 'black'].forEach(color => {
+                const bench = document.getElementById(`${color}-bench`);
+                bench.innerHTML = `<h3>${color.charAt(0).toUpperCase() + color.slice(1)} Pieces</h3>`;
+
+                Object.entries(PIECE_TIERS).forEach(([tierName, pieceIds]) => {
+                    const section = document.createElement('div');
+                    section.className = 'bench-section';
+                    section.innerHTML = `<div class="bench-section-title">${tierName}</div>`;
+
+                    const piecesDiv = document.createElement('div');
+                    piecesDiv.className = 'bench-pieces';
+
+                    pieceIds.forEach(pid => {
+                        const pt = pieceTypes[pid];
+                        if (!pt) return;
+
+                        const piece = document.createElement('div');
+                        piece.className = `bench-piece ${color}${pt.is_king ? ' king' : ''}`;
+                        piece.textContent = pid;
+                        piece.draggable = true;
+                        piece.setAttribute('data-piece-id', pid);
+                        piece.setAttribute('data-color', color);
+
+                        piece.addEventListener('dragstart', onBenchDragStart);
+                        piece.addEventListener('dragend', onDragEnd);
+
+                        piecesDiv.appendChild(piece);
+                    });
+
+                    section.appendChild(piecesDiv);
+                    bench.appendChild(section);
+                });
+            });
+        }
+
+        function updateGraveyard() {
+            ['white', 'black'].forEach(color => {
+                const container = document.getElementById(`${color}-graveyard`);
+                container.innerHTML = '';
+                graveyard[color].forEach((pid, idx) => {
+                    const piece = document.createElement('div');
+                    piece.className = `graveyard-piece ${color}`;
+                    piece.textContent = pid;
+                    piece.setAttribute('data-idx', idx);
+                    piece.onclick = () => onGraveyardClick(color, idx);
+                    container.appendChild(piece);
+                });
+            });
+        }
+
+        function updatePieceCount() {
+            const count = boardPieces.length;
+            document.getElementById('piece-count').textContent = `${count} pieces on board`;
+        }
+
+        // ========== DRAG AND DROP ==========
+        function onBenchDragStart(e) {
+            const pieceId = e.target.getAttribute('data-piece-id');
+            const color = e.target.getAttribute('data-color');
+            dragState = { type: 'bench', pieceId, color };
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'copy';
+        }
+
+        function onBoardPieceMouseDown(e) {
+            // If in move mode, don't show context menu - let click handler work
+            if (movingPieceIdx !== null) return;
+
+            const g = e.target.closest('.piece-group');
+            if (!g) return;
+
+            const idx = parseInt(g.getAttribute('data-idx'));
+            if (isNaN(idx)) return;
+
+            // Left click = context menu
+            if (e.button === 0) {
+                e.preventDefault();
+                selectedPiece = idx;
+                showContextMenu(e.clientX, e.clientY);
+            }
+        }
+
+        function onDragEnd(e) {
+            e.target.classList.remove('dragging');
+            dragState = null;
+            clearDropHighlights();
+        }
+
+        function clearDropHighlights() {
+            document.querySelectorAll('.hex.drop-target').forEach(el => {
+                el.classList.remove('drop-target');
+            });
+        }
+
+        // ========== CONTEXT MENU ==========
+        function showContextMenu(x, y) {
+            const menu = document.getElementById('context-menu');
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+            menu.classList.add('visible');
+        }
+
+        function hideContextMenu() {
+            document.getElementById('context-menu').classList.remove('visible');
+            clearMoveHighlights();
+        }
+
+        function rotatePieceCW() {
+            if (selectedPiece === null) return;
+            boardPieces[selectedPiece].facing = (boardPieces[selectedPiece].facing + 1) % 6;
+            hideContextMenu();
+            drawBoard();
+            syncToServer();
+        }
+
+        function rotatePieceCCW() {
+            if (selectedPiece === null) return;
+            boardPieces[selectedPiece].facing = (boardPieces[selectedPiece].facing + 5) % 6;
+            hideContextMenu();
+            drawBoard();
+            syncToServer();
+        }
+
+        function deletePiece() {
+            if (selectedPiece === null) return;
+            const piece = boardPieces[selectedPiece];
+            graveyard[piece.color].push(piece.pieceId);
+            boardPieces.splice(selectedPiece, 1);
+            selectedPiece = null;
+            hideContextMenu();
+            drawBoard();
+            updateGraveyard();
+            syncToServer();
+        }
+
+        function startMovePiece() {
+            if (selectedPiece === null) return;
+            movingPieceIdx = selectedPiece;
+            document.getElementById('context-menu').classList.remove('visible');
+            drawBoard();  // Will show all hexes as targets
+        }
+
+        function finishMovePiece(q, r) {
+            if (movingPieceIdx === null) return;
+
+            // Remove any piece already at destination (except the one we're moving)
+            const existingIdx = boardPieces.findIndex(p =>
+                p.pos[0] === q && p.pos[1] === r && boardPieces.indexOf(p) !== movingPieceIdx
+            );
+            if (existingIdx >= 0) {
+                const removed = boardPieces.splice(existingIdx, 1)[0];
+                graveyard[removed.color].push(removed.pieceId);
+                // Adjust movingPieceIdx if needed
+                if (existingIdx < movingPieceIdx) movingPieceIdx--;
+                updateGraveyard();
+            }
+
+            // Move the piece
+            boardPieces[movingPieceIdx].pos = [q, r];
+            movingPieceIdx = null;
+            drawBoard();
+            syncToServer();
+        }
+
+        function cancelMovePiece() {
+            movingPieceIdx = null;
+            drawBoard();
+        }
+
+        function showLegalMoves() {
+            if (selectedPiece === null) return;
+            const piece = boardPieces[selectedPiece];
+            const pt = pieceTypes[piece.pieceId];
+            if (!pt) return;
+
+            highlightedMoves = calculateLegalMoves(piece, pt);
+            // Hide menu without clearing highlights
+            document.getElementById('context-menu').classList.remove('visible');
+            drawBoard();
+        }
+
+        function clearMoveHighlights() {
+            highlightedMoves = [];
+            drawBoard();
+        }
+
+        function calculateLegalMoves(piece, pt) {
+            const moves = [];
+            const [q, r] = piece.pos;
+
+            // Direction vectors for hex grid
+            const DIR_VECTORS = [
+                [0, -1],  // N
+                [1, -1],  // NE
+                [1, 0],   // SE
+                [0, 1],   // S
+                [-1, 1],  // SW
+                [-1, 0]   // NW
+            ];
+
+            // Get absolute directions this piece can move
+            const absDirs = new Set(pt.directions.map(d => (piece.facing + d) % 6));
+
+            if (pt.move_type === 'JUMP') {
+                // JUMP: Land on any hex at exactly distance N
+                // Forward arc uses 150° angle-based filter, omni uses sector-based
+                const jumpDist = pt.move_range;
+                const isForwardArc = pt.directions.length === 3 &&
+                    new Set(pt.directions).has(0) &&
+                    new Set(pt.directions).has(1) &&
+                    new Set(pt.directions).has(5);
+
+                if (isForwardArc) {
+                    // Forward arc: 150° centered on facing (±75°)
+                    const FACING_ANGLES = [270, 330, 30, 90, 150, 210];
+                    const forwardAngle = FACING_ANGLES[piece.facing];
+
+                    for (const [tq, tr] of iterHexRing(q, r, jumpDist)) {
+                        if (!isValidHex(tq, tr)) continue;
+
+                        const dq = tq - q;
+                        const dr = tr - r;
+                        const x = 1.5 * dq;
+                        const y = 0.8660254 * dq + 1.7320508 * dr;
+                        let angle = Math.atan2(y, x) * 180 / Math.PI;
+                        if (angle < 0) angle += 360;
+
+                        let diff = Math.abs(angle - forwardAngle);
+                        if (diff > 180) diff = 360 - diff;
+                        if (diff > 75) continue;
+
+                        const targetPiece = boardPieces.find(p => p.pos[0] === tq && p.pos[1] === tr);
+                        if (targetPiece) {
+                            if (targetPiece.color !== piece.color) {
+                                moves.push({ q: tq, r: tr, type: 'capture' });
+                            }
+                        } else {
+                            moves.push({ q: tq, r: tr, type: 'move' });
+                        }
+                    }
+                } else {
+                    // Omni or other: sector-based filtering
+                    for (const [tq, tr] of iterHexRing(q, r, jumpDist)) {
+                        if (!isValidHex(tq, tr)) continue;
+
+                        const dq = tq - q;
+                        const dr = tr - r;
+                        const sector = hexToSector(dq, dr);
+
+                        if (!absDirs.has(sector)) continue;
+
+                        const targetPiece = boardPieces.find(p => p.pos[0] === tq && p.pos[1] === tr);
+                        if (targetPiece) {
+                            if (targetPiece.color !== piece.color) {
+                                moves.push({ q: tq, r: tr, type: 'capture' });
+                            }
+                        } else {
+                            moves.push({ q: tq, r: tr, type: 'move' });
+                        }
+                    }
+                }
+            } else {
+                // STEP or SLIDE - move through spaces in allowed directions
+                for (const absDir of absDirs) {
+                    const [dq, dr] = DIR_VECTORS[absDir];
+                    const range = pt.move_type === 'SLIDE' ? 9 : pt.move_range;
+
+                    for (let dist = 1; dist <= range; dist++) {
+                        const tq = q + dq * dist;
+                        const tr = r + dr * dist;
+
+                        if (!isValidHex(tq, tr)) break;
+
+                        const targetPiece = boardPieces.find(p => p.pos[0] === tq && p.pos[1] === tr);
+
+                        if (targetPiece) {
+                            if (targetPiece.color !== piece.color) {
+                                moves.push({ q: tq, r: tr, type: 'capture' });
+                            }
+                            break; // Can't move through pieces
+                        } else {
+                            moves.push({ q: tq, r: tr, type: 'move' });
+                        }
+                    }
+                }
+            }
+
+            return moves;
+        }
+
+        function onGraveyardClick(color, idx) {
+            // Could implement resurrection drag here
+            console.log(`Clicked graveyard ${color} piece at index ${idx}`);
+        }
+
+        // ========== SVG EVENT HANDLERS ==========
+        function setupSVGEvents() {
+            const svg = document.getElementById('game-board');
+
+            // Click on hex to move piece there (when in move mode)
+            svg.addEventListener('click', e => {
+                if (movingPieceIdx === null) return;
+
+                // Convert click to hex coordinates
+                const rect = svg.getBoundingClientRect();
+                const [q, r] = pixelToAxial(e.clientX - rect.left, e.clientY - rect.top);
+
+                if (isValidHex(q, r)) {
+                    finishMovePiece(q, r);
+                } else {
+                    cancelMovePiece();
+                }
+            });
+
+            svg.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (!dragState) return;
+
+                const rect = svg.getBoundingClientRect();
+                const [q, r] = pixelToAxial(e.clientX - rect.left, e.clientY - rect.top);
+
+                clearDropHighlights();
+                if (isValidHex(q, r)) {
+                    const hex = svg.querySelector(`.hex[data-q="${q}"][data-r="${r}"]`);
+                    if (hex) hex.classList.add('drop-target');
+                }
+            });
+
+            svg.addEventListener('drop', e => {
+                e.preventDefault();
+                if (!dragState) return;
+
+                const rect = svg.getBoundingClientRect();
+                const [q, r] = pixelToAxial(e.clientX - rect.left, e.clientY - rect.top);
+
+                if (isValidHex(q, r)) {
+                    // Remove any existing piece at this location
+                    const existingIdx = boardPieces.findIndex(p => p.pos[0] === q && p.pos[1] === r);
+                    if (existingIdx >= 0) {
+                        const removed = boardPieces.splice(existingIdx, 1)[0];
+                        graveyard[removed.color].push(removed.pieceId);
+                        updateGraveyard();
+                    }
+
+                    // Default facing: white faces north (0), black faces south (3)
+                    const defaultFacing = dragState.color === 'white' ? 0 : 3;
+
+                    boardPieces.push({
+                        id: Date.now(),
+                        pieceId: dragState.pieceId,
+                        color: dragState.color,
+                        pos: [q, r],
+                        facing: defaultFacing
+                    });
+
+                    drawBoard();
+                    syncToServer();
+                }
+
+                clearDropHighlights();
+                dragState = null;
+            });
+
+            svg.addEventListener('mousedown', onBoardPieceMouseDown);
+
+            svg.addEventListener('dragleave', () => {
+                clearDropHighlights();
+            });
+        }
+
+        // ========== SERVER SYNC ==========
+        async function syncToServer() {
+            document.getElementById('sync-status').textContent = 'Syncing...';
+            document.getElementById('sync-status').classList.add('pending');
+
+            const state = {
+                pieces: boardPieces,
+                graveyard: graveyard,
+                templates: templates,
+                name: document.getElementById('boardName').value
+            };
+
+            try {
+                const res = await fetch('/api/designer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state)
+                });
+                const data = await res.json();
+                lastVersion = data.version || 0;
+                document.getElementById('sync-status').textContent = 'Synced';
+                document.getElementById('sync-status').classList.remove('pending');
+            } catch (err) {
+                console.error('Sync error:', err);
+                document.getElementById('sync-status').textContent = 'Sync Error';
+            }
+        }
+
+        async function loadFromServer() {
+            try {
+                const res = await fetch('/api/designer');
+                const data = await res.json();
+                if (data.pieces) {
+                    boardPieces = data.pieces;
+                    graveyard = data.graveyard || { white: [], black: [] };
+                    templates = data.templates || { white: 'E', black: 'E' };
+                    lastVersion = data.version || 0;
+                    document.getElementById('boardName').value = data.name || '';
+                    drawBoard();
+                    updateGraveyard();
+                }
+            } catch (err) {
+                console.error('Load error:', err);
+            }
+        }
+
+        // Poll for server-pushed updates
+        async function pollForUpdates() {
+            try {
+                // Check playback state first
+                const playbackRes = await fetch('/api/playback/state');
+                const playbackData = await playbackRes.json();
+                if (playbackData.active && !playbackActive) {
+                    // Server started playback - sync UI
+                    playbackActive = true;
+                    playbackTotalMoves = playbackData.total_moves;
+                    document.getElementById('playback-panel').classList.add('active');
+                    document.getElementById('playback-total').textContent = playbackData.total_moves;
+                    document.getElementById('playback-range').max = playbackData.total_moves;
+                    updateWinnerDisplay(playbackData.winner, 'king_capture');
+                }
+                if (playbackData.active) {
+                    // Update board from playback state
+                    document.getElementById('playback-move').textContent = playbackData.move_index;
+                    document.getElementById('playback-range').value = playbackData.move_index;
+                    document.getElementById('playback-player').textContent = playbackData.current_player === 0 ? 'White' : 'Black';
+                    document.getElementById('playback-round').textContent = playbackData.round_number;
+                    document.getElementById('btn-back').disabled = playbackData.at_start;
+                    document.getElementById('btn-start').disabled = playbackData.at_start;
+                    document.getElementById('btn-forward').disabled = playbackData.at_end;
+                    document.getElementById('btn-end').disabled = playbackData.at_end;
+                    if (playbackData.pieces) {
+                        boardPieces = playbackData.pieces;
+                        drawBoard();
+                    }
+                } else if (!playbackActive) {
+                    // Normal designer poll
+                    const res = await fetch(`/api/designer/poll?version=${lastVersion}`);
+                    const data = await res.json();
+                    if (data.reload) {
+                        boardPieces = data.pieces || [];
+                        graveyard = data.graveyard || { white: [], black: [] };
+                        templates = data.templates || { white: 'E', black: 'E' };
+                        lastVersion = data.version || 0;
+                        document.getElementById('boardName').value = data.name || '';
+                        drawBoard();
+                        updateGraveyard();
+                    }
+                }
+            } catch (err) {
+                // Ignore poll errors
+            }
+            setTimeout(pollForUpdates, 1000);
+        }
+
+        // ========== PLAYBACK ==========
+        let playbackActive = false;
+        let playbackTotalMoves = 0;
+
+        function promptLoadGame() {
+            // Create a simple modal for pasting JSON
+            const json = prompt('Paste game record JSON (or enter file path if on server):');
+            if (!json) return;
+
+            // Try to parse as JSON first
+            try {
+                const parsed = JSON.parse(json);
+                loadGameRecordFromJson(parsed);
+            } catch {
+                // Not valid JSON, treat as file path
+                loadGameRecordFromPath(json);
+            }
+        }
+
+        async function loadGameRecordFromPath(path) {
+            try {
+                const res = await fetch('/api/playback/load', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: path })
+                });
+                const data = await res.json();
+                if (data.error) {
+                    alert('Error loading game: ' + data.error);
+                    return;
+                }
+                onGameLoaded(data);
+            } catch (err) {
+                alert('Error loading game: ' + err.message);
+            }
+        }
+
+        async function loadGameRecordFromJson(record) {
+            try {
+                const res = await fetch('/api/playback/load', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(record)  // Send directly
+                });
+                const data = await res.json();
+                if (data.error) {
+                    alert('Error loading game: ' + data.error);
+                    return;
+                }
+                onGameLoaded(data);
+            } catch (err) {
+                alert('Error loading game: ' + err.message);
+            }
+        }
+
+        async function onGameLoaded(data) {
+            playbackActive = true;
+            playbackTotalMoves = data.total_moves;
+            document.getElementById('playback-panel').classList.add('active');
+            document.getElementById('playback-total').textContent = data.total_moves;
+            document.getElementById('playback-range').max = data.total_moves;
+
+            // Show winner info
+            updateWinnerDisplay(data.winner, data.end_reason);
+
+            // Fetch initial state
+            await refreshPlaybackState();
+        }
+
+        function updateWinnerDisplay(winner, endReason) {
+            const el = document.getElementById('playback-winner');
+            if (winner === 0) {
+                el.className = 'playback-winner white';
+                el.textContent = `White wins (${endReason})`;
+            } else if (winner === 1) {
+                el.className = 'playback-winner black';
+                el.textContent = `Black wins (${endReason})`;
+            } else {
+                el.className = 'playback-winner draw';
+                el.textContent = `Draw (${endReason})`;
+            }
+        }
+
+        async function refreshPlaybackState() {
+            if (!playbackActive) return;
+            try {
+                const res = await fetch('/api/playback/state');
+                const data = await res.json();
+                if (!data.active) {
+                    playbackStop();
+                    return;
+                }
+                // Update UI
+                document.getElementById('playback-move').textContent = data.move_index;
+                document.getElementById('playback-range').value = data.move_index;
+                document.getElementById('playback-player').textContent = data.current_player === 0 ? 'White' : 'Black';
+                document.getElementById('playback-round').textContent = data.round_number;
+
+                // Update button states
+                document.getElementById('btn-back').disabled = data.at_start;
+                document.getElementById('btn-start').disabled = data.at_start;
+                document.getElementById('btn-forward').disabled = data.at_end;
+                document.getElementById('btn-end').disabled = data.at_end;
+
+                // Update board with playback pieces
+                if (data.pieces) {
+                    boardPieces = data.pieces;
+                    drawBoard();
+                }
+            } catch (err) {
+                console.error('Playback state error:', err);
+            }
+        }
+
+        async function playbackForward() {
+            if (!playbackActive) return;
+            try {
+                await fetch('/api/playback/forward', { method: 'POST' });
+                await refreshPlaybackState();
+            } catch (err) {
+                console.error('Playback forward error:', err);
+            }
+        }
+
+        async function playbackBackward() {
+            if (!playbackActive) return;
+            try {
+                await fetch('/api/playback/backward', { method: 'POST' });
+                await refreshPlaybackState();
+            } catch (err) {
+                console.error('Playback backward error:', err);
+            }
+        }
+
+        async function playbackGotoStart() {
+            if (!playbackActive) return;
+            await playbackGoto(0);
+        }
+
+        async function playbackGotoEnd() {
+            if (!playbackActive) return;
+            await playbackGoto(playbackTotalMoves);
+        }
+
+        async function playbackGoto(index) {
+            if (!playbackActive) return;
+            try {
+                await fetch('/api/playback/goto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index: index })
+                });
+                await refreshPlaybackState();
+            } catch (err) {
+                console.error('Playback goto error:', err);
+            }
+        }
+
+        function playbackSliderChange(value) {
+            playbackGoto(parseInt(value));
+        }
+
+        async function playbackStop() {
+            playbackActive = false;
+            document.getElementById('playback-panel').classList.remove('active');
+            try {
+                await fetch('/api/playback/stop', { method: 'POST' });
+            } catch (err) {
+                // Ignore
+            }
+            // Reload designer state
+            await loadFromServer();
+        }
+
+        // ========== INITIALIZATION ==========
+        async function init() {
+            // Load piece types
+            const res = await fetch('/api/pieces');
+            pieceTypes = await res.json();
+
+            // Setup UI
+            populateBenches();
+            drawBoard();
+            setupSVGEvents();
+
+            // Click outside to hide context menu and cancel move mode
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.context-menu') && !e.target.closest('.piece-group')) {
+                    hideContextMenu();
+                }
+                // Cancel move mode if clicking outside board (but not on context menu)
+                if (movingPieceIdx !== null && !e.target.closest('.board-area') && !e.target.closest('.context-menu')) {
+                    cancelMovePiece();
+                }
+            });
+
+            // Load existing state
+            await loadFromServer();
+
+            // Start polling for updates
+            pollForUpdates();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+{
+  "pieces": [
+    {
+      "pieceId": "K2",
+      "color": "white",
+      "pos": [
+        -2,
+        4
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "A5",
+      "color": "white",
+      "pos": [
+        -1,
+        2
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "D2",
+      "color": "white",
+      "pos": [
+        -4,
+        4
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "A5",
+      "color": "white",
+      "pos": [
+        0,
+        3
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "D2",
+      "color": "white",
+      "pos": [
+        0,
+        4
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "C1",
+      "color": "white",
+      "pos": [
+        0,
+        2
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "C1",
+      "color": "white",
+      "pos": [
+        -2,
+        2
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "C1",
+      "color": "white",
+      "pos": [
+        -3,
+        3
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "D5",
+      "color": "white",
+      "pos": [
+        -1,
+        4
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "K1",
+      "color": "black",
+      "pos": [
+        2,
+        -4
+      ],
+      "facing": 3
+    },
+    {
+      "pieceId": "G1",
+      "color": "black",
+      "pos": [
+        1,
+        -2
+      ],
+      "facing": 4
+    },
+    {
+      "pieceId": "P1",
+      "color": "black",
+      "pos": [
+        2,
+        -2
+      ],
+      "facing": 3
+    },
+    {
+      "pieceId": "P1",
+      "color": "black",
+      "pos": [
+        0,
+        -2
+      ],
+      "facing": 4
+    },
+    {
+      "pieceId": "D1",
+      "color": "black",
+      "pos": [
+        3,
+        -3
+      ],
+      "facing": 2
+    },
+    {
+      "pieceId": "D1",
+      "color": "black",
+      "pos": [
+        0,
+        -3
+      ],
+      "facing": 4
+    },
+    {
+      "pieceId": "B3",
+      "color": "black",
+      "pos": [
+        2,
+        -3
+      ],
+      "facing": 3
+    },
+    {
+      "pieceId": "B3",
+      "color": "black",
+      "pos": [
+        1,
+        -3
+      ],
+      "facing": 4
+    },
+    {
+      "pieceId": "B3",
+      "color": "black",
+      "pos": [
+        3,
+        -4
+      ],
+      "facing": 2
+    },
+    {
+      "pieceId": "B3",
+      "color": "black",
+      "pos": [
+        1,
+        -4
+      ],
+      "facing": 4
+    },
+    {
+      "id": 1769034306216,
+      "pieceId": "F2",
+      "color": "white",
+      "pos": [
+        -1,
+        3
+      ],
+      "facing": 0
+    },
+    {
+      "id": 1769034329997,
+      "pieceId": "F2",
+      "color": "white",
+      "pos": [
+        -2,
+        3
+      ],
+      "facing": 0
+    },
+    {
+      "id": 1769034357416,
+      "pieceId": "W2",
+      "color": "white",
+      "pos": [
+        -3,
+        4
+      ],
+      "facing": 0
+    }
+  ],
+  "graveyard": {
+    "white": [
+      "D5",
+      "D5",
+      "W1"
+    ],
+    "black": []
+  },
+  "templates": {
+    "white": "E",
+    "black": "E"
+  },
+  "version": 24,
+  "name": "jumphand"
+}

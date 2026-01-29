@@ -1,0 +1,121 @@
+{
+  "name": "orcs_k1",
+  "description": "Guard king variant",
+  "pieces": [
+    {
+      "pieceId": "K1",
+      "color": "white",
+      "pos": [
+        -2,
+        4
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "W1",
+      "color": "white",
+      "pos": [
+        -3,
+        4
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "D5",
+      "color": "white",
+      "pos": [
+        -1,
+        4
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "A3",
+      "color": "white",
+      "pos": [
+        -3,
+        3
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "A3",
+      "color": "white",
+      "pos": [
+        -4,
+        4
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "A3",
+      "color": "white",
+      "pos": [
+        -2,
+        2
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "A3",
+      "color": "white",
+      "pos": [
+        0,
+        2
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "A3",
+      "color": "white",
+      "pos": [
+        0,
+        3
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "A3",
+      "color": "white",
+      "pos": [
+        0,
+        4
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "C1",
+      "color": "white",
+      "pos": [
+        -2,
+        3
+      ],
+      "facing": 0
+    },
+    {
+      "pieceId": "C1",
+      "color": "white",
+      "pos": [
+        -1,
+        3
+      ],
+      "facing": 1
+    },
+    {
+      "pieceId": "C1",
+      "color": "white",
+      "pos": [
+        -1,
+        2
+      ],
+      "facing": 0
+    }
+  ],
+  "piece_types": [
+    "A3",
+    "C1",
+    "D5",
+    "K1",
+    "W1"
+  ]
+}

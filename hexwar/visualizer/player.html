@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEXWAR - Interactive Player</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            user-select: none;
+        }
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin: 5px 0 10px 0;
+            font-size: 1.5em;
+        }
+        .main-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .sidebar {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            width: 280px;
+            flex-shrink: 0;
+        }
+        .sidebar h3 {
+            margin: 0 0 10px 0;
+            color: #00d4ff;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .board-area {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 12px;
+            position: relative;
+        }
+        svg.board {
+            display: block;
+        }
+        .hex {
+            fill: #2a2a4a;
+            stroke: #444;
+            stroke-width: 1;
+            transition: fill 0.1s;
+        }
+        .hex.white-home { fill: #2a3a4a; }
+        .hex.black-home { fill: #3a2a4a; }
+        .hex.selectable {
+            cursor: pointer;
+        }
+        .hex.selectable:hover {
+            fill: #3a5a3a;
+        }
+        .hex.selected {
+            fill: #4a6a4a !important;
+            stroke: #0f0;
+            stroke-width: 2;
+        }
+        .hex.move-target {
+            fill: #2a4a2a !important;
+            cursor: pointer;
+        }
+        .hex.move-target:hover {
+            fill: #3a6a3a !important;
+        }
+        .hex.capture-target {
+            fill: #4a2a2a !important;
+            cursor: pointer;
+        }
+        .hex.capture-target:hover {
+            fill: #6a3a3a !important;
+        }
+        .hex.rebirth-target {
+            fill: #4a3a2a !important;
+            cursor: pointer;
+            stroke: #ff6600;
+            stroke-width: 2;
+        }
+        .hex.rebirth-target:hover {
+            fill: #6a4a3a !important;
+        }
+        .hex.last-move {
+            stroke: #ffcc00;
+            stroke-width: 2;
+        }
+        .piece-group {
+            pointer-events: none;
+        }
+        .piece-group.selectable {
+            pointer-events: all;
+            cursor: pointer;
+        }
+        .piece-group.selectable:hover {
+            filter: brightness(1.2);
+        }
+        .piece-hex {
+            stroke-width: 2;
+        }
+        .piece-hex.white {
+            fill: #e8e8e8;
+            stroke: #fff;
+        }
+        .piece-hex.black {
+            fill: #2a2a2a;
+            stroke: #555;
+        }
+        .piece-hex.king {
+            stroke: gold;
+            stroke-width: 3;
+        }
+        .facing-dot { fill: #ff3333; }
+        .move-arrow { fill: #00cc66; }
+        .piece-label {
+            font-size: 9px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .piece-label.white { fill: #333; }
+        .piece-label.black { fill: #ddd; }
+        .piece-range {
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .piece-range.white { fill: #333; }
+        .piece-range.black { fill: #ddd; }
+        .piece-special {
+            font-size: 10px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .coord-label {
+            font-size: 7px;
+            fill: #444;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        /* Setup Panel */
+        .setup-panel {
+            margin-bottom: 15px;
+        }
+        .setup-panel.hidden {
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #888;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 8px;
+            background: #2a2a4a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 14px;
+        }
+        .form-group select:focus, .form-group input:focus {
+            border-color: #00d4ff;
+            outline: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background: #00b8e0;
+        }
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .btn.surrender {
+            background: #cc3333;
+            margin-top: 15px;
+        }
+        .btn.surrender:hover {
+            background: #aa2222;
+        }
+        /* Game Info */
+        .game-info {
+            margin-bottom: 15px;
+        }
+        .game-info.hidden {
+            display: none;
+        }
+        .status-box {
+            background: #2a2a4a;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .status-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        .status-line:last-child {
+            margin-bottom: 0;
+        }
+        .status-label {
+            color: #888;
+        }
+        .status-value {
+            color: #fff;
+            font-weight: bold;
+        }
+        .status-value.white-turn {
+            color: #e8e8e8;
+        }
+        .status-value.black-turn {
+            color: #888;
+        }
+        .status-value.your-turn {
+            color: #00ff00;
+        }
+        .status-value.ai-turn {
+            color: #ff9900;
+        }
+        .winner-banner {
+            text-align: center;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .winner-banner.you-win {
+            background: #2a4a2a;
+            color: #00ff00;
+        }
+        .winner-banner.you-lose {
+            background: #4a2a2a;
+            color: #ff4444;
+        }
+        .winner-banner.draw {
+            background: #4a4a2a;
+            color: #ffcc00;
+        }
+        /* Move List */
+        .move-list {
+            background: #2a2a4a;
+            padding: 10px;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        .move-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #333;
+        }
+        .move-entry:last-child {
+            border-bottom: none;
+        }
+        .move-entry.white {
+            color: #e8e8e8;
+        }
+        .move-entry.black {
+            color: #888;
+        }
+        /* Action selection */
+        .action-panel {
+            background: #2a2a4a;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .action-panel.hidden {
+            display: none;
+        }
+        .action-title {
+            font-size: 12px;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: #3a3a5a;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .action-btn:hover {
+            background: #4a4a6a;
+            border-color: #00d4ff;
+        }
+        .action-btn:last-child {
+            margin-bottom: 0;
+        }
+        .rotate-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .rotate-btn {
+            flex: 1 1 45%;
+            padding: 6px;
+            background: #3a3a5a;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .rotate-btn:hover {
+            background: #4a4a6a;
+            border-color: #00d4ff;
+        }
+        /* Loading indicator */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #00d4ff;
+        }
+        .loading.active {
+            display: block;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00d4ff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Ruleset selector */
+        .ruleset-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #2a2a4a;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        .ruleset-item {
+            padding: 8px 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+        }
+        .ruleset-item:hover {
+            background: #3a3a5a;
+        }
+        .ruleset-item.selected {
+            background: #3a5a3a;
+            color: #0f0;
+        }
+        /* Toggle switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: #2a2a4a;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .toggle-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #444;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background: #888;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: #00d4ff;
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+            background: #fff;
+        }
+        .jump-threat-indicator {
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <h1>HEXWAR - Interactive Player</h1>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <!-- Setup Panel -->
+            <div class="setup-panel" id="setup-panel">
+                <h3>Game Setup</h3>
+
+                <div class="form-group">
+                    <label>Play as:</label>
+                    <select id="player-side">
+                        <option value="white">White (moves first)</option>
+                        <option value="black">Black</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>AI Depth:</label>
+                    <select id="ai-depth">
+                        <option value="2">2 (Easy)</option>
+                        <option value="4" selected>4 (Medium)</option>
+                        <option value="6">6 (Hard)</option>
+                        <option value="8">8 (Very Hard)</option>
+                        <option value="10">10 (Expert)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Ruleset:</label>
+                    <div class="ruleset-list" id="ruleset-list">
+                    </div>
+                </div>
+
+                <button class="btn" id="start-game-btn">Start Game</button>
+            </div>
+
+            <!-- Game Info (shown during game) -->
+            <div class="game-info hidden" id="game-info">
+                <h3>Game Status</h3>
+
+                <div id="winner-banner" class="winner-banner hidden"></div>
+
+                <div class="status-box">
+                    <div class="status-line">
+                        <span class="status-label">Turn:</span>
+                        <span class="status-value" id="turn-display">White</span>
+                    </div>
+                    <div class="status-line">
+                        <span class="status-label">Round:</span>
+                        <span class="status-value" id="round-display">1</span>
+                    </div>
+                    <div class="status-line">
+                        <span class="status-label">Action:</span>
+                        <span class="status-value" id="action-display">-</span>
+                    </div>
+                    <div class="status-line">
+                        <span class="status-label">You are:</span>
+                        <span class="status-value" id="player-display">White</span>
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <span class="toggle-label">Show Jump Threats 🦘</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="jump-threat-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="loading" id="ai-loading">
+                    <div class="loading-spinner"></div>
+                    <div>AI is thinking...</div>
+                </div>
+
+                <div class="action-panel hidden" id="action-panel">
+                    <div class="action-title">Select Action:</div>
+                    <div id="action-buttons"></div>
+                </div>
+
+                <h3 style="margin-top: 15px;">Move History</h3>
+                <div class="move-list" id="move-list"></div>
+
+                <button class="btn surrender" id="surrender-btn">Surrender</button>
+                <button class="btn" id="new-game-btn" style="margin-top: 5px;">New Game</button>
+            </div>
+        </div>
+
+        <div class="board-area">
+            <svg id="game-board" class="board"></svg>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONSTANTS ==========
+        const BOARD_RADIUS = 4;
+        const HEX_SIZE = 35;
+        const SVG_WIDTH = 650;
+        const SVG_HEIGHT = 600;
+        const CENTER_X = SVG_WIDTH / 2;
+        const CENTER_Y = SVG_HEIGHT / 2;
+
+        // Direction angles (pointy-top hexagon)
+        const DIR_ANGLES = [270, 330, 30, 90, 150, 210];  // N, NE, SE, S, SW, NW
+        const DIR_NAMES = ['N', 'NE', 'SE', 'S', 'SW', 'NW'];
+
+        const SPECIAL_EMOJI = {
+            'PHASED': '👻',
+            'SWAP_MOVE': '🌀',
+            'SWAP_ROTATE': '🔄',
+            'REBIRTH': '🔥'
+        };
+
+        // ========== STATE ==========
+        let pieceTypes = {};
+        let gameState = null;  // Current game state from server
+        let playerSide = 'white';  // 0=white, 1=black
+        let aiDepth = 4;
+        let selectedRuleset = 'default';
+        let selectedPiecePos = null;  // [q, r] of selected piece
+        let legalMoves = [];  // Available moves for current action
+        let lastMove = null;  // Last move made (for highlighting)
+        let gameActive = false;
+        let showJumpThreats = false;  // Toggle for jump threat overlay
+
+        // ========== HEX MATH ==========
+        function axialToPixel(q, r) {
+            const x = HEX_SIZE * (3/2 * q);
+            const y = HEX_SIZE * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
+            return { x: CENTER_X + x, y: CENTER_Y + y };
+        }
+
+        function pixelToAxial(px, py) {
+            const x = px - CENTER_X;
+            const y = py - CENTER_Y;
+            const q = (2/3 * x) / HEX_SIZE;
+            const r = (-1/3 * x + Math.sqrt(3)/3 * y) / HEX_SIZE;
+            return axialRound(q, r);
+        }
+
+        function axialRound(q, r) {
+            let s = -q - r;
+            let rq = Math.round(q);
+            let rr = Math.round(r);
+            let rs = Math.round(s);
+            const qDiff = Math.abs(rq - q);
+            const rDiff = Math.abs(rr - r);
+            const sDiff = Math.abs(rs - s);
+            if (qDiff > rDiff && qDiff > sDiff) {
+                rq = -rr - rs;
+            } else if (rDiff > sDiff) {
+                rr = -rq - rs;
+            }
+            return [rq, rr];
+        }
+
+        function isValidHex(q, r) {
+            return Math.abs(q) <= BOARD_RADIUS &&
+                   Math.abs(r) <= BOARD_RADIUS &&
+                   Math.abs(q + r) <= BOARD_RADIUS;
+        }
+
+        function hexDistance(q1, r1, q2, r2) {
+            return (Math.abs(q1 - q2) + Math.abs(r1 - r2) + Math.abs((q1 + r1) - (q2 + r2))) / 2;
+        }
+
+        function hexCorners(cx, cy, size) {
+            const corners = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = Math.PI / 180 * (60 * i);
+                corners.push({
+                    x: cx + size * Math.cos(angle),
+                    y: cy + size * Math.sin(angle)
+                });
+            }
+            return corners;
+        }
+
+        function hexPath(cx, cy, size) {
+            const corners = hexCorners(cx, cy, size);
+            return corners.map((c, i) => (i === 0 ? 'M' : 'L') + c.x + ',' + c.y).join(' ') + ' Z';
+        }
+
+        function edgeMidpoint(cx, cy, size, dirIndex) {
+            const angle = Math.PI / 180 * DIR_ANGLES[dirIndex];
+            return {
+                x: cx + size * 0.75 * Math.cos(angle),
+                y: cy + size * 0.75 * Math.sin(angle)
+            };
+        }
+
+        function moveTriangle(cx, cy, size, dirIndex) {
+            const angle = Math.PI / 180 * DIR_ANGLES[dirIndex];
+            const dist = size * 0.82;
+            const tx = cx + dist * Math.cos(angle);
+            const ty = cy + dist * Math.sin(angle);
+            const triSize = 4;
+            const points = [
+                { x: tx + triSize * Math.cos(angle), y: ty + triSize * Math.sin(angle) },
+                { x: tx + triSize * Math.cos(angle + 2.3), y: ty + triSize * Math.sin(angle + 2.3) },
+                { x: tx + triSize * Math.cos(angle - 2.3), y: ty + triSize * Math.sin(angle - 2.3) }
+            ];
+            return points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ') + ' Z';
+        }
+
+        // ========== JUMP THREAT HELPERS ==========
+        function hexToSector(dq, dr) {
+            if (dq === 0 && dr === 0) return 0;
+            const x = 1.5 * dq;
+            const y = 0.8660254 * dq + 1.7320508 * dr;
+            let angle = Math.atan2(y, x) * 180 / Math.PI;
+            if (angle < 0) angle += 360;
+            if (angle < 60) return 2;
+            else if (angle < 120) return 3;
+            else if (angle < 180) return 4;
+            else if (angle < 240) return 5;
+            else if (angle < 300) return 0;
+            else return 1;
+        }
+
+        function* iterHexRing(centerQ, centerR, radius) {
+            const DIR_VECS = [[0,-1], [1,-1], [1,0], [0,1], [-1,1], [-1,0]];
+            if (radius === 0) { yield [centerQ, centerR]; return; }
+            let q = centerQ + DIR_VECS[4][0] * radius;
+            let r = centerR + DIR_VECS[4][1] * radius;
+            for (let dir = 0; dir < 6; dir++) {
+                for (let step = 0; step < radius; step++) {
+                    yield [q, r];
+                    q += DIR_VECS[dir][0];
+                    r += DIR_VECS[dir][1];
+                }
+            }
+        }
+
+        function getJumpThreats() {
+            // Returns map of "q,r" -> count of jump pieces that can attack this hex
+            const threats = {};
+            if (!gameState || !gameState.pieces) return threats;
+
+            for (const piece of gameState.pieces) {
+                const pt = pieceTypes[piece.pieceId];
+                if (!pt || pt.move_type !== 'JUMP') continue;
+
+                const q = piece.pos[0];
+                const r = piece.pos[1];
+                const jumpDist = pt.move_range;
+                const absDirs = new Set(pt.directions.map(d => (piece.facing + d) % 6));
+
+                // Check if forward arc (directions 0, 1, 5)
+                const isForwardArc = pt.directions.length === 3 &&
+                    new Set(pt.directions).has(0) &&
+                    new Set(pt.directions).has(1) &&
+                    new Set(pt.directions).has(5);
+
+                const FACING_ANGLES = [270, 330, 30, 90, 150, 210];
+                const forwardAngle = FACING_ANGLES[piece.facing];
+
+                for (const [tq, tr] of iterHexRing(q, r, jumpDist)) {
+                    if (!isValidHex(tq, tr)) continue;
+
+                    const dq = tq - q;
+                    const dr = tr - r;
+
+                    let canAttack = false;
+                    if (isForwardArc) {
+                        // Forward arc: 150° centered on facing (±75°)
+                        const x = 1.5 * dq;
+                        const y = 0.8660254 * dq + 1.7320508 * dr;
+                        let angle = Math.atan2(y, x) * 180 / Math.PI;
+                        if (angle < 0) angle += 360;
+                        let diff = Math.abs(angle - forwardAngle);
+                        if (diff > 180) diff = 360 - diff;
+                        canAttack = diff <= 75;
+                    } else {
+                        // Sector-based filtering
+                        const sector = hexToSector(dq, dr);
+                        canAttack = absDirs.has(sector);
+                    }
+
+                    if (canAttack) {
+                        const key = `${tq},${tr}`;
+                        threats[key] = (threats[key] || 0) + 1;
+                    }
+                }
+            }
+            return threats;
+        }
+
+        // ========== RENDERING ==========
+        function drawBoard() {
+            const svg = document.getElementById('game-board');
+            svg.setAttribute('width', SVG_WIDTH);
+            svg.setAttribute('height', SVG_HEIGHT);
+            svg.innerHTML = '';
+
+            if (!gameState) {
+                // Draw empty board
+                for (let q = -BOARD_RADIUS; q <= BOARD_RADIUS; q++) {
+                    for (let r = -BOARD_RADIUS; r <= BOARD_RADIUS; r++) {
+                        if (isValidHex(q, r)) {
+                            const { x, y } = axialToPixel(q, r);
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            path.setAttribute('d', hexPath(x, y, HEX_SIZE - 2));
+                            path.setAttribute('class', 'hex');
+                            if (r >= 2) path.classList.add('white-home');
+                            else if (r <= -2) path.classList.add('black-home');
+                            svg.appendChild(path);
+                        }
+                    }
+                }
+                return;
+            }
+
+            const isPlayerTurn = gameState.current_player === (playerSide === 'white' ? 0 : 1);
+            const pieces = gameState.pieces || [];
+
+            // Build move targets map
+            const moveTargets = {};  // "q,r" -> {type: 'move'|'capture'|'rebirth', move}
+            if (isPlayerTurn && selectedPiecePos) {
+                for (const move of legalMoves) {
+                    if (move.from_pos && move.from_pos[0] === selectedPiecePos[0] && move.from_pos[1] === selectedPiecePos[1]) {
+                        if (move.to_pos) {
+                            const key = `${move.to_pos[0]},${move.to_pos[1]}`;
+                            const hasPiece = pieces.find(p => p.pos[0] === move.to_pos[0] && p.pos[1] === move.to_pos[1]);
+                            moveTargets[key] = {
+                                type: hasPiece ? 'capture' : 'move',
+                                move: move
+                            };
+                        }
+                    }
+                }
+            }
+
+            // Add Phoenix rebirth targets (always show when available, no piece selection needed)
+            if (isPlayerTurn) {
+                for (const move of legalMoves) {
+                    if (move.action_type === 'SPECIAL' && move.special_data && move.special_data.type === 'REBIRTH') {
+                        const key = `${move.to_pos[0]},${move.to_pos[1]}`;
+                        moveTargets[key] = {
+                            type: 'rebirth',
+                            move: move
+                        };
+                    }
+                }
+            }
+
+            // Draw hexes
+            for (let q = -BOARD_RADIUS; q <= BOARD_RADIUS; q++) {
+                for (let r = -BOARD_RADIUS; r <= BOARD_RADIUS; r++) {
+                    if (!isValidHex(q, r)) continue;
+
+                    const { x, y } = axialToPixel(q, r);
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', hexPath(x, y, HEX_SIZE - 2));
+                    path.setAttribute('class', 'hex');
+                    path.setAttribute('data-q', q);
+                    path.setAttribute('data-r', r);
+
+                    if (r >= 2) path.classList.add('white-home');
+                    else if (r <= -2) path.classList.add('black-home');
+
+                    // Highlight last move
+                    if (lastMove) {
+                        if ((lastMove.from_pos && lastMove.from_pos[0] === q && lastMove.from_pos[1] === r) ||
+                            (lastMove.to_pos && lastMove.to_pos[0] === q && lastMove.to_pos[1] === r)) {
+                            path.classList.add('last-move');
+                        }
+                    }
+
+                    // Highlight selected piece
+                    if (selectedPiecePos && selectedPiecePos[0] === q && selectedPiecePos[1] === r) {
+                        path.classList.add('selected');
+                    }
+
+                    // Highlight move targets
+                    const key = `${q},${r}`;
+                    if (moveTargets[key]) {
+                        const targetType = moveTargets[key].type;
+                        if (targetType === 'capture') {
+                            path.classList.add('capture-target');
+                        } else if (targetType === 'rebirth') {
+                            path.classList.add('rebirth-target');
+                        } else {
+                            path.classList.add('move-target');
+                        }
+                        path.onclick = () => makeMove(moveTargets[key].move);
+                    }
+
+                    svg.appendChild(path);
+
+                    // Coord label
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', x);
+                    label.setAttribute('y', y);
+                    label.setAttribute('class', 'coord-label');
+                    label.textContent = `${q},${r}`;
+                    svg.appendChild(label);
+                }
+            }
+
+            // Draw pieces
+            pieces.forEach(piece => {
+                drawPieceOnBoard(svg, piece, isPlayerTurn);
+            });
+
+            // Draw jump threat overlay (after pieces so it shows on top)
+            if (showJumpThreats) {
+                const threats = getJumpThreats();
+                for (const [key, count] of Object.entries(threats)) {
+                    const [tq, tr] = key.split(',').map(Number);
+                    const { x, y } = axialToPixel(tq, tr);
+                    const indicator = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    indicator.setAttribute('x', x);
+                    indicator.setAttribute('y', y - 5);
+                    indicator.setAttribute('class', 'jump-threat-indicator');
+                    indicator.textContent = '🦘'.repeat(count);
+                    svg.appendChild(indicator);
+                }
+            }
+        }
+
+        function drawPieceOnBoard(svg, piece, isPlayerTurn) {
+            const pt = pieceTypes[piece.pieceId];
+            if (!pt) return;
+
+            const { x, y } = axialToPixel(piece.pos[0], piece.pos[1]);
+            const isKing = pt.is_king;
+            const colorClass = piece.color;
+            const pieceSize = HEX_SIZE - 5;
+
+            // Check if this piece is selectable
+            const isOurPiece = piece.color === playerSide;
+            const canSelect = isPlayerTurn && isOurPiece && gameState.winner === null;
+
+            // Group for the piece
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'piece-group' + (canSelect ? ' selectable' : ''));
+
+            if (canSelect) {
+                g.onclick = (e) => {
+                    e.stopPropagation();
+                    selectPiece(piece.pos);
+                };
+            }
+
+            // Piece hexagon
+            const hex = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            hex.setAttribute('d', hexPath(x, y, pieceSize));
+            hex.setAttribute('class', `piece-hex ${colorClass}${isKing ? ' king' : ''}`);
+            g.appendChild(hex);
+
+            // Move direction triangles
+            if (pt.directions) {
+                for (const relDir of pt.directions) {
+                    const absDir = (piece.facing + relDir) % 6;
+                    const tri = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    tri.setAttribute('d', moveTriangle(x, y, pieceSize, absDir));
+                    tri.setAttribute('class', 'move-arrow');
+                    g.appendChild(tri);
+                }
+            }
+
+            // Facing dot
+            const dotPos = edgeMidpoint(x, y, pieceSize, piece.facing);
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', dotPos.x);
+            dot.setAttribute('cy', dotPos.y);
+            dot.setAttribute('r', 4);
+            dot.setAttribute('class', 'facing-dot');
+            g.appendChild(dot);
+
+            // Range number
+            if (pt.move_type && pt.move_type !== 'NONE') {
+                const range = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                range.setAttribute('x', x);
+                range.setAttribute('y', y - 4);
+                range.setAttribute('class', `piece-range ${colorClass}`);
+                range.textContent = pt.move_range || '';
+                g.appendChild(range);
+            }
+
+            // Piece ID label
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', x);
+            label.setAttribute('y', y + 10);
+            label.setAttribute('class', `piece-label ${colorClass}`);
+            label.textContent = piece.pieceId;
+            g.appendChild(label);
+
+            // Special emoji
+            if (pt.special) {
+                const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                emoji.setAttribute('x', x + 10);
+                emoji.setAttribute('y', y - 10);
+                emoji.setAttribute('class', 'piece-special');
+                emoji.textContent = SPECIAL_EMOJI[pt.special] || '';
+                g.appendChild(emoji);
+            }
+
+            // Jump indicator (kangaroo)
+            if (pt.move_type === 'JUMP') {
+                const jump = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                jump.setAttribute('x', x - 10);
+                jump.setAttribute('y', y - 10);
+                jump.setAttribute('class', 'piece-special');
+                jump.textContent = '🦘';
+                g.appendChild(jump);
+            }
+
+            svg.appendChild(g);
+        }
+
+        // ========== GAME LOGIC ==========
+        function selectPiece(pos) {
+            if (selectedPiecePos && selectedPiecePos[0] === pos[0] && selectedPiecePos[1] === pos[1]) {
+                // Deselect
+                selectedPiecePos = null;
+            } else {
+                selectedPiecePos = pos;
+            }
+            updateActionPanel();
+            drawBoard();
+        }
+
+        function updateActionPanel() {
+            const panel = document.getElementById('action-panel');
+            const buttons = document.getElementById('action-buttons');
+
+            if (!gameState || gameState.winner !== null) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            const isPlayerTurn = gameState.current_player === (playerSide === 'white' ? 0 : 1);
+            if (!isPlayerTurn) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            panel.classList.remove('hidden');
+            buttons.innerHTML = '';
+
+            // Pass button
+            const passBtn = document.createElement('button');
+            passBtn.className = 'action-btn';
+            passBtn.textContent = 'Pass (skip action)';
+            passBtn.onclick = () => makeMove({ action_type: 'PASS' });
+            buttons.appendChild(passBtn);
+
+            // Check for Phoenix rebirth moves
+            const rebirthMoves = legalMoves.filter(m =>
+                m.action_type === 'SPECIAL' && m.special_data && m.special_data.type === 'REBIRTH'
+            );
+            if (rebirthMoves.length > 0) {
+                const rebirthDiv = document.createElement('div');
+                rebirthDiv.innerHTML = '<div style="margin: 8px 0 5px; font-size: 11px; color: #ff6600;">🔥 Phoenix Rebirth available! Click a highlighted hex near your king.</div>';
+                buttons.appendChild(rebirthDiv);
+            }
+
+            // If a piece is selected, show rotate options
+            if (selectedPiecePos) {
+                const piece = gameState.pieces.find(p =>
+                    p.pos[0] === selectedPiecePos[0] && p.pos[1] === selectedPiecePos[1]
+                );
+                if (piece) {
+                    const rotateDiv = document.createElement('div');
+                    rotateDiv.innerHTML = '<div style="margin: 8px 0 5px; font-size: 11px; color: #888;">Rotate to face:</div>';
+                    const rotateContainer = document.createElement('div');
+                    rotateContainer.className = 'rotate-btns';
+
+                    for (let dir = 0; dir < 6; dir++) {
+                        const btn = document.createElement('button');
+                        btn.className = 'rotate-btn';
+                        btn.textContent = DIR_NAMES[dir];
+                        if (dir === piece.facing) {
+                            btn.style.background = '#5a5a7a';
+                            btn.textContent += ' (current)';
+                        }
+                        btn.onclick = () => makeMove({
+                            action_type: 'ROTATE',
+                            from_pos: selectedPiecePos,
+                            new_facing: dir
+                        });
+                        rotateContainer.appendChild(btn);
+                    }
+                    rotateDiv.appendChild(rotateContainer);
+                    buttons.appendChild(rotateDiv);
+                }
+            }
+        }
+
+        async function makeMove(move) {
+            if (!gameActive) return;
+
+            try {
+                const response = await fetch('/api/game/move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ move })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    console.error('Move error:', data.error);
+                    return;
+                }
+
+                lastMove = move;
+                selectedPiecePos = null;
+                gameState = data.state;
+                legalMoves = data.legal_moves || [];
+
+                addMoveToHistory(move, playerSide);
+                updateGameDisplay();
+                drawBoard();
+
+                // Check if game ended
+                if (gameState.winner !== null) {
+                    showWinner();
+                    return;
+                }
+
+                // If it's now AI's turn, let AI move
+                if (gameState.current_player !== (playerSide === 'white' ? 0 : 1)) {
+                    await aiMove();
+                }
+            } catch (err) {
+                console.error('Move failed:', err);
+            }
+        }
+
+        async function aiMove() {
+            document.getElementById('ai-loading').classList.add('active');
+
+            try {
+                const response = await fetch('/api/game/ai-move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ depth: aiDepth })
+                });
+
+                const data = await response.json();
+                document.getElementById('ai-loading').classList.remove('active');
+
+                if (data.error) {
+                    console.error('AI move error:', data.error);
+                    return;
+                }
+
+                lastMove = data.move;
+                gameState = data.state;
+                legalMoves = data.legal_moves || [];
+
+                const aiSide = playerSide === 'white' ? 'black' : 'white';
+                addMoveToHistory(data.move, aiSide);
+                updateGameDisplay();
+                drawBoard();
+
+                // Check if game ended
+                if (gameState.winner !== null) {
+                    showWinner();
+                }
+            } catch (err) {
+                console.error('AI move failed:', err);
+                document.getElementById('ai-loading').classList.remove('active');
+            }
+        }
+
+        function addMoveToHistory(move, side) {
+            const list = document.getElementById('move-list');
+            const entry = document.createElement('div');
+            entry.className = 'move-entry ' + side;
+
+            let text = `${side === 'white' ? 'W' : 'B'}: `;
+            if (move.action_type === 'PASS') {
+                text += 'Pass';
+            } else if (move.action_type === 'SURRENDER') {
+                text += 'Surrender';
+            } else if (move.action_type === 'MOVE') {
+                text += `Move (${move.from_pos[0]},${move.from_pos[1]}) -> (${move.to_pos[0]},${move.to_pos[1]})`;
+            } else if (move.action_type === 'ROTATE') {
+                text += `Rotate (${move.from_pos[0]},${move.from_pos[1]}) to ${DIR_NAMES[move.new_facing]}`;
+            } else if (move.action_type === 'SPECIAL' && move.special_data && move.special_data.type === 'REBIRTH') {
+                text += `🔥 Phoenix Rebirth at (${move.to_pos[0]},${move.to_pos[1]})`;
+            } else {
+                text += move.action_type;
+            }
+
+            entry.textContent = text;
+            list.appendChild(entry);
+            list.scrollTop = list.scrollHeight;
+        }
+
+        function updateGameDisplay() {
+            if (!gameState) return;
+
+            const turnDisplay = document.getElementById('turn-display');
+            const roundDisplay = document.getElementById('round-display');
+            const actionDisplay = document.getElementById('action-display');
+
+            const currentTurn = gameState.current_player === 0 ? 'White' : 'Black';
+            const isYourTurn = gameState.current_player === (playerSide === 'white' ? 0 : 1);
+
+            turnDisplay.textContent = currentTurn;
+            turnDisplay.className = 'status-value ' + (isYourTurn ? 'your-turn' : 'ai-turn');
+
+            roundDisplay.textContent = gameState.round_number || 1;
+            actionDisplay.textContent = gameState.current_action || '-';
+
+            updateActionPanel();
+        }
+
+        function showWinner() {
+            gameActive = false;
+            const banner = document.getElementById('winner-banner');
+            banner.classList.remove('hidden');
+
+            const playerNum = playerSide === 'white' ? 0 : 1;
+            if (gameState.winner === playerNum) {
+                banner.className = 'winner-banner you-win';
+                banner.textContent = 'You Win!';
+            } else if (gameState.winner === 1 - playerNum) {
+                banner.className = 'winner-banner you-lose';
+                banner.textContent = 'You Lose!';
+            } else {
+                banner.className = 'winner-banner draw';
+                banner.textContent = 'Draw!';
+            }
+
+            document.getElementById('action-panel').classList.add('hidden');
+            document.getElementById('surrender-btn').style.display = 'none';
+        }
+
+        // ========== GAME SETUP ==========
+        async function loadPieceTypes() {
+            try {
+                const response = await fetch('/api/piece-types');
+                pieceTypes = await response.json();
+            } catch (err) {
+                console.error('Failed to load piece types:', err);
+            }
+        }
+
+        async function loadRulesets() {
+            try {
+                const response = await fetch('/api/rulesets');
+                const rulesets = await response.json();
+
+                const list = document.getElementById('ruleset-list');
+                list.innerHTML = '';
+
+                // Add loaded rulesets
+                for (const rs of rulesets) {
+                    const item = document.createElement('div');
+                    item.className = 'ruleset-item' + (rulesets.indexOf(rs) === 0 ? ' selected' : '');
+                    item.textContent = rs.name;
+                    item.dataset.ruleset = rs.id;
+                    item.onclick = () => selectRuleset(rs.id, item);
+                    list.appendChild(item);
+                }
+
+                // Select first by default
+                if (rulesets.length > 0) {
+                    selectedRuleset = rulesets[0].id;
+                }
+            } catch (err) {
+                console.error('Failed to load rulesets:', err);
+            }
+        }
+
+        function selectRuleset(ruleset, element) {
+            selectedRuleset = ruleset;
+            document.querySelectorAll('.ruleset-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        async function startGame() {
+            playerSide = document.getElementById('player-side').value;
+            aiDepth = parseInt(document.getElementById('ai-depth').value);
+
+            document.getElementById('start-game-btn').disabled = true;
+
+            try {
+                const response = await fetch('/api/game/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ruleset: selectedRuleset,
+                        player_side: playerSide,
+                        ai_depth: aiDepth
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    console.error('Failed to start game:', data.error);
+                    document.getElementById('start-game-btn').disabled = false;
+                    return;
+                }
+
+                gameState = data.state;
+                legalMoves = data.legal_moves || [];
+                lastMove = null;
+                selectedPiecePos = null;
+                gameActive = true;
+
+                // Update UI
+                document.getElementById('setup-panel').classList.add('hidden');
+                document.getElementById('game-info').classList.remove('hidden');
+                document.getElementById('player-display').textContent = playerSide.charAt(0).toUpperCase() + playerSide.slice(1);
+                document.getElementById('winner-banner').classList.add('hidden');
+                document.getElementById('move-list').innerHTML = '';
+                document.getElementById('surrender-btn').style.display = 'block';
+
+                updateGameDisplay();
+                drawBoard();
+
+                // If AI moves first, let it move
+                if (gameState.current_player !== (playerSide === 'white' ? 0 : 1)) {
+                    await aiMove();
+                }
+            } catch (err) {
+                console.error('Failed to start game:', err);
+                document.getElementById('start-game-btn').disabled = false;
+            }
+        }
+
+        function newGame() {
+            gameActive = false;
+            gameState = null;
+            selectedPiecePos = null;
+            lastMove = null;
+            legalMoves = [];
+
+            document.getElementById('setup-panel').classList.remove('hidden');
+            document.getElementById('game-info').classList.add('hidden');
+            document.getElementById('start-game-btn').disabled = false;
+
+            drawBoard();
+        }
+
+        async function surrender() {
+            if (!gameActive || !gameState || gameState.winner !== null) return;
+
+            if (!confirm('Are you sure you want to surrender?')) return;
+
+            await makeMove({ action_type: 'SURRENDER' });
+        }
+
+        // ========== INITIALIZATION ==========
+        async function init() {
+            await loadPieceTypes();
+            await loadRulesets();
+
+            document.getElementById('start-game-btn').onclick = startGame;
+            document.getElementById('new-game-btn').onclick = newGame;
+            document.getElementById('surrender-btn').onclick = surrender;
+
+            // Jump threat toggle
+            document.getElementById('jump-threat-toggle').onchange = (e) => {
+                showJumpThreats = e.target.checked;
+                drawBoard();
+            };
+
+            // Click on empty board to deselect
+            document.getElementById('game-board').onclick = (e) => {
+                if (e.target.classList.contains('hex') && !e.target.classList.contains('move-target') && !e.target.classList.contains('capture-target')) {
+                    selectedPiecePos = null;
+                    updateActionPanel();
+                    drawBoard();
+                }
+            };
+
+            drawBoard();
+        }
+
+        init();
+    </script>
+</body>
+</html>

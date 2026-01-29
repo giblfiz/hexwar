@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEXWAR Board Visualizer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .control-group {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        select, button {
+            background: #0f3460;
+            color: #fff;
+            border: 1px solid #00d4ff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        select:hover, button:hover {
+            background: #1a4a7a;
+        }
+        .board-container {
+            display: flex;
+            justify-content: center;
+        }
+        .board-panel {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        svg.board {
+            display: block;
+            margin: 0 auto;
+        }
+        .hex {
+            fill: #2a2a4a;
+            stroke: #444;
+            stroke-width: 1;
+        }
+        .hex.white-home {
+            fill: #2a3a4a;
+        }
+        .hex.black-home {
+            fill: #3a2a4a;
+        }
+        .piece-hex {
+            stroke-width: 2;
+        }
+        .piece-hex.white {
+            fill: #e8e8e8;
+            stroke: #fff;
+        }
+        .piece-hex.black {
+            fill: #2a2a2a;
+            stroke: #555;
+        }
+        .piece-hex.king {
+            stroke: gold;
+            stroke-width: 3;
+        }
+        .facing-dot {
+            fill: #ff3333;
+        }
+        .move-arrow {
+            fill: #00cc66;
+        }
+        .piece-label {
+            font-size: 9px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .piece-label.white { fill: #333; }
+        .piece-label.black { fill: #ddd; }
+        .piece-range {
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .piece-range.white { fill: #333; }
+        .piece-range.black { fill: #ddd; }
+        .piece-special {
+            font-size: 10px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .coord-label {
+            font-size: 7px;
+            fill: #444;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        .legend {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .legend h3 {
+            margin: 0 0 10px 0;
+            color: #00d4ff;
+        }
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+        .legend-symbol {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f3460;
+            border-radius: 4px;
+        }
+        .info-panel {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .info-panel h3 {
+            margin: 0 0 10px 0;
+            color: #00d4ff;
+        }
+        .piece-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .piece-tag {
+            background: #0f3460;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HEXWAR Board Visualizer</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Load Champion</label>
+                <select id="champion-select">
+                    <option value="">-- Select Champion --</option>
+                </select>
+                <button onclick="loadChampion()">Load</button>
+            </div>
+            <div class="control-group">
+                <label>Load Seed (Human-Coherent)</label>
+                <select id="seed-select">
+                    <option value="">-- Select Seed --</option>
+                </select>
+                <button onclick="loadSeed()">Load</button>
+            </div>
+            <div class="control-group">
+                <label>Actions</label>
+                <button onclick="clearBoard()">Clear</button>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <div class="board-panel">
+                <svg id="game-board" class="board"></svg>
+            </div>
+        </div>
+
+        <div class="info-panel" id="info-panel" style="display: none;">
+            <h3 id="champion-name">Champion Info</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="color: #fff; margin: 10px 0 5px;">White Army (King: <span id="white-king"></span>)</h4>
+                    <div class="piece-list" id="white-pieces"></div>
+                </div>
+                <div>
+                    <h4 style="color: #888; margin: 10px 0 5px;">Black Army (King: <span id="black-king"></span>)</h4>
+                    <div class="piece-list" id="black-pieces"></div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; color: #888; font-size: 13px;">
+                <span id="champion-stats"></span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>Legend</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-symbol" style="color: #ff3333;">●</div>
+                    <span>Red dot = Facing direction</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol" style="color: #00cc66;">▲</div>
+                    <span>Green triangle = Move direction</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">1-3</div>
+                    <span>Number = Move range (steps)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">9</div>
+                    <span>9 = Slider (unlimited range)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">🦘</div>
+                    <span>Jump (leaps over pieces)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">👻</div>
+                    <span>Ghost (phased, can't capture)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">🌀</div>
+                    <span>Warper (teleport swap)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">🔥</div>
+                    <span>Phoenix (rebirth ability)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hex geometry constants - FLAT TOP hexagons
+        const HEX_SIZE = 32;
+        const BOARD_RADIUS = 4;
+        const SVG_WIDTH = 520;
+        const SVG_HEIGHT = 480;
+        const CENTER_X = SVG_WIDTH / 2;
+        const CENTER_Y = SVG_HEIGHT / 2;
+
+        // Piece data cache
+        let pieceTypes = {};
+
+        // Direction angles for FLAT-TOP hex (edge midpoints, not corners)
+        // 0=N (top edge), 1=NE, 2=SE, 3=S, 4=SW, 5=NW
+        // In SVG, Y increases downward, so N is -90°
+        const DIR_ANGLES = [
+            -90,   // N  (0) - top edge
+            -30,   // NE (1) - upper-right edge
+            30,    // SE (2) - lower-right edge
+            90,    // S  (3) - bottom edge
+            150,   // SW (4) - lower-left edge
+            -150   // NW (5) - upper-left edge
+        ];
+
+        // Special ability emojis
+        const SPECIAL_EMOJI = {
+            'PHASED': '👻',
+            'SWAP_MOVE': '🌀',
+            'SWAP_ROTATE': '🔄',
+            'REBIRTH': '🔥'
+        };
+
+        // Convert axial to pixel (FLAT-TOP orientation)
+        function axialToPixel(q, r) {
+            const x = HEX_SIZE * (3/2 * q);
+            const y = HEX_SIZE * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
+            return { x: CENTER_X + x, y: CENTER_Y + y };
+        }
+
+        // Generate hex corner points (FLAT-TOP: corners at 0°, 60°, 120°, etc.)
+        function hexCorners(cx, cy, size) {
+            const corners = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = Math.PI / 180 * (60 * i);  // Flat-top: start at 0°
+                corners.push({
+                    x: cx + size * Math.cos(angle),
+                    y: cy + size * Math.sin(angle)
+                });
+            }
+            return corners;
+        }
+
+        // Create hex path
+        function hexPath(cx, cy, size) {
+            const corners = hexCorners(cx, cy, size);
+            return corners.map((c, i) => (i === 0 ? 'M' : 'L') + c.x + ',' + c.y).join(' ') + ' Z';
+        }
+
+        // Get edge midpoint position for a direction (facing dot or move triangle)
+        // For flat-top hex, edges are at 30°, 90°, 150°, 210°, 270°, 330° from center
+        function edgeMidpoint(cx, cy, size, dirIndex) {
+            const angle = Math.PI / 180 * DIR_ANGLES[dirIndex];
+            return {
+                x: cx + size * 0.75 * Math.cos(angle),
+                y: cy + size * 0.75 * Math.sin(angle)
+            };
+        }
+
+        // Create move direction triangle pointing outward from edge
+        function moveTriangle(cx, cy, size, dirIndex) {
+            const angle = Math.PI / 180 * DIR_ANGLES[dirIndex];
+            const dist = size * 0.82;
+            const tx = cx + dist * Math.cos(angle);
+            const ty = cy + dist * Math.sin(angle);
+
+            // Triangle pointing outward
+            const triSize = 4;
+            const points = [
+                // Tip pointing outward
+                { x: tx + triSize * Math.cos(angle), y: ty + triSize * Math.sin(angle) },
+                // Base corners perpendicular to direction
+                { x: tx + triSize * Math.cos(angle + 2.3), y: ty + triSize * Math.sin(angle + 2.3) },
+                { x: tx + triSize * Math.cos(angle - 2.3), y: ty + triSize * Math.sin(angle - 2.3) }
+            ];
+            return points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ') + ' Z';
+        }
+
+        // Draw the board with all hexes
+        function drawBoard() {
+            const svg = document.getElementById('game-board');
+            svg.setAttribute('width', SVG_WIDTH);
+            svg.setAttribute('height', SVG_HEIGHT);
+            svg.innerHTML = '';
+
+            // Draw all hexes
+            for (let q = -BOARD_RADIUS; q <= BOARD_RADIUS; q++) {
+                for (let r = -BOARD_RADIUS; r <= BOARD_RADIUS; r++) {
+                    if (Math.abs(q + r) <= BOARD_RADIUS) {
+                        const { x, y } = axialToPixel(q, r);
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('d', hexPath(x, y, HEX_SIZE - 2));
+                        path.setAttribute('class', 'hex');
+
+                        // Highlight home zones
+                        if (r >= 2) {
+                            path.classList.add('white-home');
+                        } else if (r <= -2) {
+                            path.classList.add('black-home');
+                        }
+
+                        svg.appendChild(path);
+
+                        // Coordinate label (small, subtle)
+                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        label.setAttribute('x', x);
+                        label.setAttribute('y', y);
+                        label.setAttribute('class', 'coord-label');
+                        label.textContent = `${q},${r}`;
+                        svg.appendChild(label);
+                    }
+                }
+            }
+        }
+
+        // Draw a piece on the board
+        function drawPiece(svg, q, r, pieceId, facing, owner) {
+            const pt = pieceTypes[pieceId];
+            if (!pt) return;
+
+            const { x, y } = axialToPixel(q, r);
+            const isKing = pt.is_king;
+            const colorClass = owner === 0 ? 'white' : 'black';
+            const pieceSize = HEX_SIZE - 5;
+
+            // Piece hexagon background
+            const hex = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            hex.setAttribute('d', hexPath(x, y, pieceSize));
+            hex.setAttribute('class', `piece-hex ${colorClass}${isKing ? ' king' : ''}`);
+            svg.appendChild(hex);
+
+            // Move direction triangles (draw first, behind facing dot)
+            for (const relDir of pt.directions) {
+                const absDir = (facing + relDir) % 6;
+                const tri = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tri.setAttribute('d', moveTriangle(x, y, pieceSize, absDir));
+                tri.setAttribute('class', 'move-arrow');
+                svg.appendChild(tri);
+            }
+
+            // Facing dot (on edge midpoint)
+            const dotPos = edgeMidpoint(x, y, pieceSize, facing);
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', dotPos.x);
+            dot.setAttribute('cy', dotPos.y);
+            dot.setAttribute('r', 4);
+            dot.setAttribute('class', 'facing-dot');
+            svg.appendChild(dot);
+
+            // Range number (upper area)
+            if (pt.move_type !== 'NONE') {
+                const range = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                range.setAttribute('x', x);
+                range.setAttribute('y', y - 4);
+                range.setAttribute('class', `piece-range ${colorClass}`);
+                range.textContent = pt.move_range;
+                svg.appendChild(range);
+            }
+
+            // Piece ID label (lower area)
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', x);
+            label.setAttribute('y', y + 10);
+            label.setAttribute('class', `piece-label ${colorClass}`);
+            label.textContent = pieceId;
+            svg.appendChild(label);
+
+            // Special emoji (top-right corner)
+            if (pt.special) {
+                const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                emoji.setAttribute('x', x + 10);
+                emoji.setAttribute('y', y - 10);
+                emoji.setAttribute('class', 'piece-special');
+                emoji.textContent = SPECIAL_EMOJI[pt.special] || '✨';
+                svg.appendChild(emoji);
+            }
+
+            // Jump indicator (top-left corner)
+            if (pt.move_type === 'JUMP') {
+                const jump = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                jump.setAttribute('x', x - 10);
+                jump.setAttribute('y', y - 10);
+                jump.setAttribute('class', 'piece-special');
+                jump.textContent = '🦘';
+                svg.appendChild(jump);
+            }
+        }
+
+        // Load champions list (grouped by run)
+        async function loadChampionsList() {
+            const res = await fetch('/api/champions');
+            const champions = await res.json();
+            const select = document.getElementById('champion-select');
+
+            // Group by run
+            const byRun = {};
+            champions.forEach(c => {
+                if (!byRun[c.run]) byRun[c.run] = [];
+                byRun[c.run].push(c);
+            });
+
+            // Add optgroups for each run (sorted, newest first)
+            Object.keys(byRun).sort().reverse().forEach(run => {
+                const group = document.createElement('optgroup');
+                group.label = run;
+                byRun[run].forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    group.appendChild(opt);
+                });
+                select.appendChild(group);
+            });
+        }
+
+        // Load seeds list
+        async function loadSeedsList() {
+            const res = await fetch('/api/seeds');
+            const seeds = await res.json();
+            const select = document.getElementById('seed-select');
+            seeds.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            });
+        }
+
+        // Load and display a seed
+        async function loadSeed() {
+            const name = document.getElementById('seed-select').value;
+            if (!name) return;
+
+            const res = await fetch(`/api/seed/${name}`);
+            const data = await res.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            displayRuleset(data);
+        }
+
+        // Load piece types
+        async function loadPieceTypes() {
+            const res = await fetch('/api/pieces');
+            pieceTypes = await res.json();
+        }
+
+        // Load and display a champion
+        async function loadChampion() {
+            const name = document.getElementById('champion-select').value;
+            if (!name) return;
+
+            const res = await fetch(`/api/champion/${name}`);
+            const data = await res.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            displayRuleset(data);
+        }
+
+        // Display a ruleset (champion or seed)
+        function displayRuleset(data) {
+            const ruleset = data.ruleset;
+
+            // Redraw board
+            drawBoard();
+            const svg = document.getElementById('game-board');
+
+            // White pieces (facing 0 = North)
+            const whitePos = ruleset.white_positions;
+            drawPiece(svg, whitePos[0][0], whitePos[0][1], ruleset.white_king, 0, 0);
+            for (let i = 0; i < ruleset.white_pieces.length; i++) {
+                const pos = whitePos[i + 1];
+                if (pos) drawPiece(svg, pos[0], pos[1], ruleset.white_pieces[i], 0, 0);
+            }
+
+            // Black pieces (facing 3 = South)
+            const blackPos = ruleset.black_positions;
+            drawPiece(svg, blackPos[0][0], blackPos[0][1], ruleset.black_king, 3, 1);
+            for (let i = 0; i < ruleset.black_pieces.length; i++) {
+                const pos = blackPos[i + 1];
+                if (pos) drawPiece(svg, pos[0], pos[1], ruleset.black_pieces[i], 3, 1);
+            }
+
+            // Update info panel
+            document.getElementById('info-panel').style.display = 'block';
+            document.getElementById('champion-name').textContent = data.name;
+            document.getElementById('white-king').textContent = ruleset.white_king;
+            document.getElementById('black-king').textContent = ruleset.black_king;
+
+            // Piece lists
+            const whitePiecesDiv = document.getElementById('white-pieces');
+            const blackPiecesDiv = document.getElementById('black-pieces');
+            whitePiecesDiv.innerHTML = ruleset.white_pieces.map(p =>
+                `<span class="piece-tag">${p} (${pieceTypes[p]?.name || p})</span>`
+            ).join('');
+            blackPiecesDiv.innerHTML = ruleset.black_pieces.map(p =>
+                `<span class="piece-tag">${p} (${pieceTypes[p]?.name || p})</span>`
+            ).join('');
+
+            // Stats
+            if (data.n_evals > 0) {
+                const runInfo = data.run ? `Run: ${data.run} | ` : '';
+                document.getElementById('champion-stats').textContent =
+                    runInfo +
+                    `Mean Fitness: ${data.mean_fitness.toFixed(3)} | ` +
+                    `UCB: ${data.ucb_score.toFixed(3)} | ` +
+                    `Evaluations: ${data.n_evals} | ` +
+                    `Generation: ${data.generation_reached}`;
+            } else {
+                document.getElementById('champion-stats').textContent =
+                    'Seed configuration - not yet evaluated';
+            }
+        }
+
+        // Clear the board
+        function clearBoard() {
+            drawBoard();
+            document.getElementById('info-panel').style.display = 'none';
+        }
+
+        // Initialize
+        async function init() {
+            await loadPieceTypes();
+            await loadChampionsList();
+            await loadSeedsList();
+            drawBoard();
+        }
+
+        init();
+    </script>
+</body>
+</html>
