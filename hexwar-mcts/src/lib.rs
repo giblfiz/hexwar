@@ -158,6 +158,22 @@ impl MctsPlayer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hexwar_core::board::Hex;
+    use hexwar_core::game::Template;
+    use hexwar_core::pieces::piece_id_to_index;
+
+    // Helper to create a simple test game
+    fn simple_game() -> GameState {
+        let white = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, 3), 0),
+            (piece_id_to_index("A2").unwrap(), Hex::new(-1, 3), 0),
+        ];
+        let black = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, -3), 3),
+            (piece_id_to_index("A2").unwrap(), Hex::new(1, -3), 3),
+        ];
+        GameState::new(&white, &black, Template::E, Template::E)
+    }
 
     #[test]
     fn test_config_defaults() {
@@ -178,5 +194,106 @@ mod tests {
     fn test_config_with_exploration() {
         let config = MctsConfig::default().with_exploration(2.0);
         assert_eq!(config.exploration, 2.0);
+    }
+
+    #[test]
+    fn test_mcts_player_creation() {
+        let config = MctsConfig::cpu_only(100);
+        let player = MctsPlayer::cpu_only(config.clone());
+        assert_eq!(player.config().simulations, 100);
+    }
+
+    #[test]
+    fn test_mcts_best_move() {
+        let config = MctsConfig::cpu_only(50); // Small for fast test
+        let player = MctsPlayer::cpu_only(config);
+        let state = simple_game();
+
+        let mv = player.best_move(&state);
+        assert!(mv.is_some(), "MCTS should find a move");
+
+        // Should not choose Surrender as best move
+        assert_ne!(mv, Some(Move::Surrender));
+    }
+
+    #[test]
+    fn test_mcts_search_with_stats() {
+        let config = MctsConfig::cpu_only(30);
+        let player = MctsPlayer::cpu_only(config);
+        let state = simple_game();
+
+        let result = player.search_with_stats(&state);
+
+        // Should have run some simulations
+        assert!(result.total_simulations > 0);
+
+        // Tree should have grown
+        assert!(result.tree.len() > 1, "Tree should have expanded");
+
+        // Should have some move statistics
+        // (may be empty if all moves come from Pass/Surrender with no expansion)
+    }
+
+    #[test]
+    fn test_mcts_avoids_surrender() {
+        // Run multiple searches to verify MCTS generally avoids surrendering
+        let config = MctsConfig::cpu_only(50);
+        let player = MctsPlayer::cpu_only(config);
+        let state = simple_game();
+
+        for _ in 0..5 {
+            let mv = player.best_move(&state);
+            assert_ne!(mv, Some(Move::Surrender), "MCTS should not surrender in normal position");
+        }
+    }
+
+    #[test]
+    fn test_mcts_finds_obvious_winning_move() {
+        // Set up position where white queen can capture black king in one move
+        // Queen (D5) is a slider and can move in all directions
+        let white = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, 3), 0),
+            (piece_id_to_index("D5").unwrap(), Hex::new(0, 1), 0), // Queen, can slide north to capture
+        ];
+        let black = vec![
+            (piece_id_to_index("K1").unwrap(), Hex::new(0, -1), 3), // Black king 2 hexes north
+        ];
+        let state = GameState::new(&white, &black, Template::E, Template::E);
+
+        // Use more simulations to reliably find the win
+        // MCTS is stochastic, so we try multiple times
+        let config = MctsConfig::cpu_only(1000);
+        let player = MctsPlayer::cpu_only(config);
+
+        // Try up to 5 times - MCTS should find the win at least once
+        let mut found_winning_move = false;
+        for _ in 0..5 {
+            let mv = player.best_move(&state);
+
+            if let Some(Move::Movement { from, to, .. }) = mv {
+                if from == Hex::new(0, 1) && to == Hex::new(0, -1) {
+                    found_winning_move = true;
+                    break;
+                }
+            }
+        }
+
+        assert!(found_winning_move, "MCTS should find the winning king capture within 5 tries");
+    }
+
+    #[test]
+    fn test_search_result_accessors() {
+        let config = MctsConfig::cpu_only(20);
+        let player = MctsPlayer::cpu_only(config);
+        let state = simple_game();
+
+        let result = player.search_with_stats(&state);
+
+        // Test various accessors
+        let _best = result.best_move();
+        let _highest = result.highest_winrate_move();
+        let _by_visits = result.moves_by_visits();
+
+        // All should work without panicking
     }
 }

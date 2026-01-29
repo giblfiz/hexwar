@@ -158,16 +158,21 @@ pub fn parallel_cpu_rollouts(
 // ============================================================================
 // IMPROVED ROLLOUT POLICIES (Future Enhancement)
 // ============================================================================
+// These are placeholders for future enhancement.
+// Suppressing dead_code warnings since they will be used later.
 
 /// A rollout policy determines how to select moves during simulation
+#[allow(dead_code)]
 pub trait RolloutPolicy: Send + Sync {
     /// Select a move from the list of legal moves
     fn select_move<R: Rng>(&self, state: &GameState, moves: &[Move], rng: &mut R) -> Move;
 }
 
 /// Uniform random policy - all moves equally likely
+#[allow(dead_code)]
 pub struct UniformPolicy;
 
+#[allow(dead_code)]
 impl RolloutPolicy for UniformPolicy {
     fn select_move<R: Rng>(&self, _state: &GameState, moves: &[Move], rng: &mut R) -> Move {
         select_random_move(moves, rng)
@@ -178,6 +183,7 @@ impl RolloutPolicy for UniformPolicy {
 ///
 /// This is a placeholder for future enhancement. In practice,
 /// heavy playouts can significantly improve MCTS quality.
+#[allow(dead_code)]
 pub struct HeavyPolicy {
     /// Weight for capture moves
     pub capture_weight: f32,
@@ -185,6 +191,7 @@ pub struct HeavyPolicy {
     pub center_weight: f32,
 }
 
+#[allow(dead_code)]
 impl Default for HeavyPolicy {
     fn default() -> Self {
         Self {
@@ -194,6 +201,7 @@ impl Default for HeavyPolicy {
     }
 }
 
+#[allow(dead_code)]
 impl RolloutPolicy for HeavyPolicy {
     fn select_move<R: Rng>(&self, _state: &GameState, moves: &[Move], rng: &mut R) -> Move {
         // TODO: Implement weighted selection based on move type
@@ -203,6 +211,7 @@ impl RolloutPolicy for HeavyPolicy {
 }
 
 /// Perform a rollout with a custom policy
+#[allow(dead_code)]
 pub fn cpu_rollout_with_policy<R: Rng, P: RolloutPolicy>(
     state: &GameState,
     max_depth: u32,
