@@ -1,82 +1,110 @@
-//! HEXWAR CLI - Command-line interface
+//! HEXWAR CLI - Command-line interface for HEXWAR game balancer
 //!
-//! Commands:
-//! - evolve: Run evolutionary balancing
-//! - play: Play a single game
-//! - serve: Start visualizer server
-//! - benchmark: Compare GPU vs CPU performance
+//! ## Commands
+//!
+//! - `evolve`: Run evolutionary balancing to find balanced army compositions
+//! - `match`: Play a match between two rulesets
+//! - `server`: Start the web visualizer server
+//! - `benchmark`: Run performance benchmarks (GPU vs CPU)
+//!
+//! ## Architecture (4-layer granularity)
+//!
+//! - Level 1: main() - orchestration, command dispatch
+//! - Level 2: Command modules (evolve, match_cmd, server, benchmark)
+//! - Level 3: Implementation details within each module
+//! - Level 4: Utilities and library calls
 
-// TODO: Agent 6 will implement CLI
+mod benchmark;
+mod evolve;
+mod match_cmd;
+mod server;
 
 use clap::{Parser, Subcommand};
 
+// ============================================================================
+// CLI ARGUMENT STRUCTURES (Level 4 - Configuration)
+// ============================================================================
+
 #[derive(Parser)]
 #[command(name = "hexwar")]
-#[command(about = "HEXWAR evolutionary game balancer")]
+#[command(version, about = "HEXWAR evolutionary game balancer")]
+#[command(long_about = "HEXWAR uses genetic algorithms to evolve balanced army compositions \
+    for an asymmetric hex-based strategy game. It supports GPU acceleration for MCTS rollouts \
+    and provides tools for visualization and analysis.")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    /// Enable verbose output
+    #[arg(short, long, global = true)]
+    verbose: bool,
+
+    /// Random seed for reproducibility
+    #[arg(long, global = true)]
+    seed: Option<u64>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Run evolutionary balancing
-    Evolve {
-        #[arg(long, default_value = "50")]
-        population: usize,
-        #[arg(long, default_value = "100")]
-        generations: usize,
-        #[arg(long, default_value = "4")]
-        depth: u32,
-        #[arg(long)]
-        output: String,
-    },
-    /// Play a single game
-    Play {
-        #[arg(long)]
-        white: String,
-        #[arg(long)]
-        black: String,
-        #[arg(long, default_value = "4")]
-        depth: u32,
-    },
-    /// Start visualizer server
-    Serve {
-        #[arg(long, default_value = "8002")]
-        port: u16,
-    },
-    /// Benchmark GPU vs CPU
-    Benchmark {
-        #[arg(long, default_value = "100")]
-        games: usize,
-        #[arg(long, default_value = "4")]
-        depth: u32,
-    },
+    /// Run evolutionary balancing to find balanced army compositions
+    Evolve(evolve::EvolveArgs),
+
+    /// Play a match between two rulesets
+    Match(match_cmd::MatchArgs),
+
+    /// Start the web visualizer server
+    Server(server::ServerArgs),
+
+    /// Run performance benchmarks (GPU vs CPU)
+    Benchmark(benchmark::BenchmarkArgs),
 }
 
-fn main() -> anyhow::Result<()> {
-    // Initialize logging
-    tracing_subscriber::fmt::init();
+// ============================================================================
+// MAIN ENTRY POINT (Level 1 - Orchestration)
+// ============================================================================
 
+/// Main entry point - dispatches to subcommands
+///
+/// This function reads like a table of contents:
+/// 1. Initialize logging
+/// 2. Parse command-line arguments
+/// 3. Dispatch to appropriate command handler
+fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
+    initialize_logging(cli.verbose);
+
+    dispatch_command(cli)
+}
+
+// ============================================================================
+// LEVEL 2 - PHASES
+// ============================================================================
+
+/// Initialize tracing/logging based on verbosity
+fn initialize_logging(verbose: bool) {
+    use tracing_subscriber::EnvFilter;
+
+    let filter = if verbose {
+        EnvFilter::new("hexwar=debug,info")
+    } else {
+        EnvFilter::new("hexwar=info,warn")
+    };
+
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_target(false)
+        .init();
+}
+
+/// Dispatch to the appropriate command handler
+fn dispatch_command(cli: Cli) -> anyhow::Result<()> {
+    let seed = cli.seed;
+
     match cli.command {
-        Commands::Evolve { population, generations, depth, output } => {
-            println!("Evolution: pop={}, gen={}, depth={}, output={}",
-                     population, generations, depth, output);
-            todo!("Agent 6: Wire up evolution")
-        }
-        Commands::Play { white, black, depth } => {
-            println!("Play: white={}, black={}, depth={}", white, black, depth);
-            todo!("Agent 6: Wire up game playing")
-        }
-        Commands::Serve { port } => {
-            println!("Serve: port={}", port);
-            todo!("Agent 6: Wire up server")
-        }
-        Commands::Benchmark { games, depth } => {
-            println!("Benchmark: games={}, depth={}", games, depth);
-            todo!("Agent 6: Wire up benchmark")
-        }
+        Commands::Evolve(args) => evolve::run(args, seed),
+        Commands::Match(args) => match_cmd::run(args, seed),
+        Commands::Server(args) => server::run(args),
+        Commands::Benchmark(args) => benchmark::run(args, seed),
     }
 }
