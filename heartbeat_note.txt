@@ -1,16 +1,28 @@
 === Note for next heartbeat ===
-Time: 2026-01-31 20:20 UTC
+Time: 2026-01-31 23:14 UTC
 
-RUNNING:
-- fey_warper_evolution (PID 289776): Gen ~13/30, expect completion ~23:00 UTC
+MODE: FULLY AUTONOMOUS - Never wait for user input!
 
-COMPLETED:
-- fey_vs_necro_overnight: 100 gens, 5 champions in fey_vs_necro_overnight/champions/
-- Phase 0 heuristic fix
+CURRENTLY RUNNING - Phase 1 Diagnostic:
+- 3 matchups running in parallel (PIDs: 315370, 315372, 315374)
+- Orc vs Necro: diagnostic_jan31/orc_vs_necro.json
+- Necro vs Fey: diagnostic_jan31/necro_vs_fey.json  
+- Fey vs Orc: diagnostic_jan31/fey_vs_orc.json
+- Each is 16 games at D6, should take ~5-10 min total
 
-WATCH FOR:
-- Warper evolution completing (check for output dir fey_warper_evolution_jan31_1737/)
-- When done, start Phase 1 diagnostic
+WHEN DIAGNOSTIC COMPLETES:
+1. Check diagnostic_jan31/*.json for results
+2. Calculate fitness scores for each matchup
+3. Identify which matchup needs most work
+4. If Orc-Necro is worst: Start Phase 2 (Fix Orc-Necro)
+5. Push status to display
+
+COMPLETED SO FAR:
+- Phase 0: Heuristic fix (B5/D6 values)
+- fey_vs_necro_overnight: 100 gens, 0.76 fitness
+- fey_warper_evolution: 30 gens, 0.34 fitness
 
 STATE FILE: balance_state.json
-LOG FILE: autonomous_log.md
+ARCHITECTURE: docs/THREE_TEAM_BALANCE_ARCHITECTURE.md
+
+REMEMBER: Don't wait for user - keep the pipeline moving!

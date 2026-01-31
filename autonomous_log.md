@@ -44,3 +44,9 @@
 - Warper evolution at gen 13/30, best fitness 0.36 (multi-depth is strict)
 - ETA for warper completion: ~3 hours
 
+
+### 2026-01-31 23:14 - Phase 1 Started: Diagnostic
+- Running all three matchups in parallel at D6
+- Orc vs Necro, Necro vs Fey, Fey vs Orc
+- 16 games each, ~5-10 min expected
+- Results will go to diagnostic_jan31/
