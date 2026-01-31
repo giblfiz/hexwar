@@ -7,6 +7,30 @@ edition.workspace = true
 name = "hexwar"
 path = "src/main.rs"
 
+[[bin]]
+name = "zodiac_tournament"
+path = "src/bin/zodiac_tournament.rs"
+
+[[bin]]
+name = "zodiac_playoffs"
+path = "src/bin/zodiac_playoffs.rs"
+
+[[bin]]
+name = "zodiac_elo"
+path = "src/bin/zodiac_elo.rs"
+
+[[bin]]
+name = "train_nn"
+path = "src/bin/train_nn.rs"
+
+[[bin]]
+name = "generate_training_data"
+path = "src/bin/generate_training_data.rs"
+
+[[bin]]
+name = "nn_benchmark"
+path = "src/bin/nn_benchmark.rs"
+
 [dependencies]
 hexwar-core = { path = "../hexwar-core" }
 hexwar-gpu = { path = "../hexwar-gpu" }
@@ -14,6 +38,9 @@ hexwar-evolve = { path = "../hexwar-evolve" }
 hexwar-tournament = { path = "../hexwar-tournament" }
 hexwar-mcts = { path = "../hexwar-mcts" }
 hexwar-server = { path = "../hexwar-server" }
+# hexwar-nn = { path = "../hexwar-nn", optional = true }  # Disabled - burn dependency issue
+chrono = { version = "0.4", features = ["serde"] }
+indicatif = "0.17"
 clap = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

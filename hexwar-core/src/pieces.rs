@@ -36,6 +36,7 @@ pub const ALL_DIRS: u8 = DIR_F | DIR_FR | DIR_BR | DIR_B | DIR_BL | DIR_FL;
 pub const FORWARD_ARC: u8 = DIR_F | DIR_FL | DIR_FR;
 pub const DIAGONAL_DIRS: u8 = DIR_FL | DIR_FR | DIR_BL | DIR_BR;
 pub const FORWARD_BACK: u8 = DIR_F | DIR_B;
+pub const TRIDENT_DIRS: u8 = DIR_FL | DIR_FR | DIR_B;  // Three non-adjacent directions
 
 /// Piece type definition
 #[derive(Clone, Debug)]
@@ -71,8 +72,8 @@ impl PieceType {
     }
 }
 
-/// All 30 piece types
-pub static PIECE_TYPES: [PieceType; 30] = [
+/// All 32 piece types
+pub static PIECE_TYPES: [PieceType; 32] = [
     // Step-1
     PieceType::new("A1", "Pawn", MoveType::Step, 1, DIR_F, Special::None, false),
     PieceType::new("A2", "Guard", MoveType::Step, 1, ALL_DIRS, Special::None, false),
@@ -110,6 +111,9 @@ pub static PIECE_TYPES: [PieceType; 30] = [
     PieceType::new("K3", "King Ranger", MoveType::Step, 2, ALL_DIRS, Special::None, true),
     PieceType::new("K4", "King Frog", MoveType::Jump, 2, ALL_DIRS, Special::None, true),
     PieceType::new("K5", "King Pike", MoveType::Slide, 99, DIR_F, Special::None, true),
+    // Trident pieces (3 non-adjacent directions: FL, FR, B)
+    PieceType::new("B5", "Triton", MoveType::Step, 2, TRIDENT_DIRS, Special::None, false),
+    PieceType::new("D6", "Triskelion", MoveType::Slide, 99, TRIDENT_DIRS, Special::None, false),
 ];
 
 /// Get piece type index from string ID

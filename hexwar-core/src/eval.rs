@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 /// Heuristic weights for position evaluation
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Heuristics {
-    /// Value of each piece type (index 0-29)
-    pub piece_values: [f32; 30],
+    /// Value of each piece type (index 0-31)
+    pub piece_values: [f32; 32],
     /// Weight for king centrality
     pub center_weight: f32,
     /// Weight for mobility (legal move count)
@@ -17,46 +17,58 @@ pub struct Heuristics {
 
 impl Default for Heuristics {
     fn default() -> Self {
-        // Default piece values based on mobility/capability
-        let mut values = [1.0f32; 30];
-        // Step-1: basic pieces
-        values[0] = 1.0;   // Pawn
-        values[1] = 3.0;   // Guard
-        values[2] = 2.0;   // Scout
-        values[3] = 2.0;   // Crab
-        values[4] = 1.5;   // Flanker
-        // Step-2: better mobility
-        values[5] = 2.5;   // Strider
-        values[6] = 3.0;   // Dancer
-        values[7] = 5.0;   // Ranger
-        values[8] = 4.0;   // Hound
-        // Step-3: even better
-        values[9] = 3.5;   // Lancer
-        values[10] = 5.5;  // Dragoon
-        values[11] = 7.0;  // Courser
-        // Sliders: powerful
-        values[12] = 4.0;  // Pike
-        values[13] = 5.0;  // Rook
-        values[14] = 5.0;  // Bishop
-        values[15] = 6.0;  // Chariot
-        values[16] = 9.0;  // Queen
-        // Jumpers: tactical
-        values[17] = 4.0;  // Knight
-        values[18] = 5.0;  // Frog
-        values[19] = 5.0;  // Locust
-        values[20] = 6.0;  // Cricket
-        // Special: unique value
-        values[21] = 4.0;  // Warper
-        values[22] = 4.0;  // Shifter
-        values[23] = 3.5;  // Phoenix
-        values[24] = 2.0;  // Ghost
-        // Kings: infinite (handled specially)
+        // ZENITH heuristics - optimized through tournament evolution
+        // Philosophy: High material values, strong center weight, zero mobility
+        let mut values = [1.0f32; 32];
+
+        // Basic pieces - inflated values
+        values[0] = 4.0;   // Pawn
+        values[1] = 10.0;  // Guard (all-direction premium)
+        values[2] = 6.0;   // Scout
+        values[3] = 6.0;   // Crab
+        values[4] = 5.0;   // Flanker
+
+        // Better mobility pieces
+        values[5] = 7.0;   // Strider
+        values[6] = 8.0;   // Dancer
+        values[7] = 14.0;  // Ranger (all-direction premium)
+        values[8] = 9.0;   // Hound
+
+        // Strong pieces
+        values[9] = 9.0;   // Lancer
+        values[10] = 12.0; // Dragoon
+        values[11] = 16.0; // Courser (all-direction premium)
+
+        // Sliders - powerful
+        values[12] = 10.0; // Pike
+        values[13] = 12.0; // Rook
+        values[14] = 12.0; // Bishop
+        values[15] = 13.0; // Chariot
+        values[16] = 19.0; // Queen
+
+        // Jumpers - tactical
+        values[17] = 9.0;  // Knight
+        values[18] = 10.0; // Frog
+        values[19] = 10.0; // Locust
+        values[20] = 11.0; // Cricket
+
+        // Special pieces
+        values[21] = 8.0;  // Warper
+        values[22] = 8.5;  // Shifter
+        values[23] = 8.0;  // Phoenix
+        values[24] = 6.0;  // Ghost
+
+        // Kings: zero (handled specially in evaluation)
         values[25..30].fill(0.0);
+
+        // Trident pieces (new)
+        values[30] = 8.0;   // Triton (step-2, 3 non-adjacent dirs) - like Dancer+
+        values[31] = 11.0;  // Triskelion (slider, 3 non-adjacent dirs) - like Bishop-
 
         Self {
             piece_values: values,
-            center_weight: 0.5,
-            mobility_weight: 0.1,
+            center_weight: 1.5,      // Strong center preference
+            mobility_weight: 0.0,    // Ignore mobility entirely
         }
     }
 }

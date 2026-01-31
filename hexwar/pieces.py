@@ -1,7 +1,7 @@
 """
 HEXWAR Piece Definitions
 
-All 30 piece types defined as pure data.
+All 32 piece types defined as pure data.
 Movement patterns use relative directions from piece facing.
 
 ## Movement Types
@@ -37,6 +37,7 @@ ALL_DIRS = (FORWARD, FORWARD_RIGHT, BACK_RIGHT, BACKWARD, BACK_LEFT, FORWARD_LEF
 FORWARD_ARC = (FORWARD, FORWARD_LEFT, FORWARD_RIGHT)
 DIAGONAL_DIRS = (FORWARD_LEFT, FORWARD_RIGHT, BACK_LEFT, BACK_RIGHT)
 FORWARD_BACK = (FORWARD, BACKWARD)
+TRIDENT_DIRS = (FORWARD_LEFT, FORWARD_RIGHT, BACKWARD)  # Three non-adjacent directions
 
 # Special ability types:
 # - SWAP_MOVE: Warper can swap with any friendly piece instead of moving
@@ -62,7 +63,7 @@ class PieceType:
 INF = 999
 
 # ============================================================================
-# PIECE CATALOG - All 29 types from spec
+# PIECE CATALOG - All 31 types (29 from spec + 2 trident pieces)
 # ============================================================================
 
 # Step-1 Pieces (A1-A5)
@@ -72,23 +73,25 @@ SCOUT = PieceType('A3', 'Scout', 'STEP', 1, FORWARD_ARC)
 CRAB = PieceType('A4', 'Crab', 'STEP', 1, (FORWARD_LEFT, FORWARD_RIGHT, BACKWARD))
 FLANKER = PieceType('A5', 'Flanker', 'STEP', 1, (FORWARD_LEFT, FORWARD_RIGHT))
 
-# Step-2 Pieces (B1-B4)
+# Step-2 Pieces (B1-B5)
 STRIDER = PieceType('B1', 'Strider', 'STEP', 2, (FORWARD,))
 DANCER = PieceType('B2', 'Dancer', 'STEP', 2, (FORWARD_LEFT, FORWARD_RIGHT))
 RANGER = PieceType('B3', 'Ranger', 'STEP', 2, ALL_DIRS)
 HOUND = PieceType('B4', 'Hound', 'STEP', 2, FORWARD_ARC)
+TRITON = PieceType('B5', 'Triton', 'STEP', 2, TRIDENT_DIRS)  # Trident pattern
 
 # Step-3 Pieces (C1-C3)
 LANCER = PieceType('C1', 'Lancer', 'STEP', 3, (FORWARD,))
 DRAGOON = PieceType('C2', 'Dragoon', 'STEP', 3, FORWARD_ARC)
 COURSER = PieceType('C3', 'Courser', 'STEP', 3, ALL_DIRS)
 
-# Slide Pieces (D1-D5)
+# Slide Pieces (D1-D6)
 PIKE = PieceType('D1', 'Pike', 'SLIDE', INF, (FORWARD,))
 ROOK = PieceType('D2', 'Rook', 'SLIDE', INF, FORWARD_BACK)
 BISHOP = PieceType('D3', 'Bishop', 'SLIDE', INF, DIAGONAL_DIRS)
 CHARIOT = PieceType('D4', 'Chariot', 'SLIDE', INF, FORWARD_ARC)
 QUEEN = PieceType('D5', 'Queen', 'SLIDE', INF, ALL_DIRS)
+TRISKELION = PieceType('D6', 'Triskelion', 'SLIDE', INF, TRIDENT_DIRS)  # Trident pattern
 
 # Jump Pieces (E1-E2, F1-F2)
 KNIGHT = PieceType('E1', 'Knight', 'JUMP', 2, FORWARD_ARC)  # Forward arc, distance 2 (5 positions)
@@ -114,11 +117,11 @@ PIECE_TYPES: dict[str, PieceType] = {
     # Step-1
     'A1': PAWN, 'A2': GUARD, 'A3': SCOUT, 'A4': CRAB, 'A5': FLANKER,
     # Step-2
-    'B1': STRIDER, 'B2': DANCER, 'B3': RANGER, 'B4': HOUND,
+    'B1': STRIDER, 'B2': DANCER, 'B3': RANGER, 'B4': HOUND, 'B5': TRITON,
     # Step-3
     'C1': LANCER, 'C2': DRAGOON, 'C3': COURSER,
     # Slide
-    'D1': PIKE, 'D2': ROOK, 'D3': BISHOP, 'D4': CHARIOT, 'D5': QUEEN,
+    'D1': PIKE, 'D2': ROOK, 'D3': BISHOP, 'D4': CHARIOT, 'D5': QUEEN, 'D6': TRISKELION,
     # Jump
     'E1': KNIGHT, 'E2': FROG, 'F1': LOCUST, 'F2': CRICKET,
     # Special

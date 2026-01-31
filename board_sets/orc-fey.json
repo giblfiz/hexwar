@@ -1,0 +1,154 @@
+{
+  "name": "orc-fey",
+  "description": "eFey (evolved Fey) vs Orcs",
+  "ruleset": {
+    "name": "orc-fey",
+    "description": "Fey (still-hammer white) vs Orcs (copper-pass black)",
+    "white_king": "K4",
+    "white_pieces": [
+      "B3",
+      "E2",
+      "E2",
+      "D6",
+      "D6",
+      "A4",
+      "A4",
+      "A2",
+      "B3",
+      "C3",
+      "C3"
+    ],
+    "white_positions": [
+      [
+        -2,
+        4
+      ],
+      [
+        -4,
+        4
+      ],
+      [
+        -2,
+        2
+      ],
+      [
+        -1,
+        2
+      ],
+      [
+        -1,
+        4
+      ],
+      [
+        -2,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        -3,
+        4
+      ],
+      [
+        -1,
+        3
+      ],
+      [
+        -3,
+        3
+      ],
+      [
+        -3,
+        1
+      ]
+    ],
+    "white_facings": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      5,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "white_template": "E",
+    "black_king": "K1",
+    "black_pieces": [
+      "G1",
+      "P1",
+      "P1",
+      "D1",
+      "D1",
+      "B3",
+      "B3",
+      "B3",
+      "B3"
+    ],
+    "black_positions": [
+      [
+        2,
+        -4
+      ],
+      [
+        1,
+        -2
+      ],
+      [
+        2,
+        -2
+      ],
+      [
+        0,
+        -2
+      ],
+      [
+        3,
+        -3
+      ],
+      [
+        0,
+        -3
+      ],
+      [
+        2,
+        -3
+      ],
+      [
+        1,
+        -3
+      ],
+      [
+        3,
+        -4
+      ],
+      [
+        1,
+        -4
+      ]
+    ],
+    "black_facings": [
+      3,
+      4,
+      3,
+      4,
+      2,
+      4,
+      3,
+      4,
+      2,
+      4
+    ],
+    "black_template": "E"
+  }
+}

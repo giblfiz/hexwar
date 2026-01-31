@@ -151,6 +151,7 @@ const ALL_DIRS: u8 = DIR_F | DIR_FR | DIR_BR | DIR_B | DIR_BL | DIR_FL;
 const FORWARD_ARC: u8 = DIR_F | DIR_FL | DIR_FR;
 const DIAGONAL_DIRS: u8 = DIR_FL | DIR_FR | DIR_BL | DIR_BR;
 const FORWARD_BACK: u8 = DIR_F | DIR_B;
+const TRIDENT_DIRS: u8 = DIR_FL | DIR_FR | DIR_B;  // Three non-adjacent directions
 
 // Piece type indices (matches Python IDs)
 const PT_A1: u8 = 0;   // Pawn
@@ -183,8 +184,10 @@ const PT_K2: u8 = 26;  // King Scout
 const PT_K3: u8 = 27;  // King Ranger
 const PT_K4: u8 = 28;  // King Frog
 const PT_K5: u8 = 29;  // King Pike
+const PT_B5: u8 = 30;  // Triton (Step-2, Trident)
+const PT_D6: u8 = 31;  // Triskelion (Slide, Trident)
 
-const PIECE_TYPES: [PieceType; 30] = [
+const PIECE_TYPES: [PieceType; 32] = [
     // Step-1
     PieceType::new(MoveType::Step, 1, DIR_F, Special::None, false),              // A1 Pawn
     PieceType::new(MoveType::Step, 1, ALL_DIRS, Special::None, false),           // A2 Guard
@@ -222,6 +225,9 @@ const PIECE_TYPES: [PieceType; 30] = [
     PieceType::new(MoveType::Step, 2, ALL_DIRS, Special::None, true),            // K3 Ranger
     PieceType::new(MoveType::Jump, 2, ALL_DIRS, Special::None, true),            // K4 Frog
     PieceType::new(MoveType::Slide, 99, DIR_F, Special::None, true),             // K5 Pike
+    // Trident pieces
+    PieceType::new(MoveType::Step, 2, TRIDENT_DIRS, Special::None, false),       // B5 Triton
+    PieceType::new(MoveType::Slide, 99, TRIDENT_DIRS, Special::None, false),     // D6 Triskelion
 ];
 
 fn piece_id_to_index(id: &str) -> Option<u8> {
@@ -229,9 +235,10 @@ fn piece_id_to_index(id: &str) -> Option<u8> {
         "A1" => Some(PT_A1), "A2" => Some(PT_A2), "A3" => Some(PT_A3),
         "A4" => Some(PT_A4), "A5" => Some(PT_A5),
         "B1" => Some(PT_B1), "B2" => Some(PT_B2), "B3" => Some(PT_B3), "B4" => Some(PT_B4),
+        "B5" => Some(PT_B5),
         "C1" => Some(PT_C1), "C2" => Some(PT_C2), "C3" => Some(PT_C3),
         "D1" => Some(PT_D1), "D2" => Some(PT_D2), "D3" => Some(PT_D3),
-        "D4" => Some(PT_D4), "D5" => Some(PT_D5),
+        "D4" => Some(PT_D4), "D5" => Some(PT_D5), "D6" => Some(PT_D6),
         "E1" => Some(PT_E1), "E2" => Some(PT_E2), "F1" => Some(PT_F1), "F2" => Some(PT_F2),
         "W1" => Some(PT_W1), "W2" => Some(PT_W2), "P1" => Some(PT_P1), "G1" => Some(PT_G1),
         "K1" => Some(PT_K1), "K2" => Some(PT_K2), "K3" => Some(PT_K3),
@@ -778,8 +785,8 @@ fn resolve_by_proximity(mut state: GameState) -> GameState {
 // ============================================================================
 
 struct Heuristics {
-    white_values: [f32; 30],
-    black_values: [f32; 30],
+    white_values: [f32; 32],
+    black_values: [f32; 32],
     white_center_weight: f32,
     black_center_weight: f32,
 }
@@ -1344,8 +1351,8 @@ fn play_game(
     let white_center: f32 = heuristics_dict.get_item("white_center_weight")?.unwrap().extract()?;
     let black_center: f32 = heuristics_dict.get_item("black_center_weight")?.unwrap().extract()?;
 
-    let mut white_values = [1.0f32; 30];
-    let mut black_values = [1.0f32; 30];
+    let mut white_values = [1.0f32; 32];
+    let mut black_values = [1.0f32; 32];
 
     for (key, value) in white_values_dict.iter() {
         let id: String = key.extract()?;
@@ -1456,8 +1463,8 @@ fn play_game_with_record(
     let white_center: f32 = heuristics_dict.get_item("white_center_weight")?.unwrap().extract()?;
     let black_center: f32 = heuristics_dict.get_item("black_center_weight")?.unwrap().extract()?;
 
-    let mut white_values = [1.0f32; 30];
-    let mut black_values = [1.0f32; 30];
+    let mut white_values = [1.0f32; 32];
+    let mut black_values = [1.0f32; 32];
 
     for (key, value) in white_values_dict.iter() {
         let id: String = key.extract()?;
@@ -1560,8 +1567,8 @@ fn get_ai_move(
     let white_center: f32 = heuristics_dict.get_item("white_center_weight")?.unwrap().extract()?;
     let black_center: f32 = heuristics_dict.get_item("black_center_weight")?.unwrap().extract()?;
 
-    let mut white_values = [1.0f32; 30];
-    let mut black_values = [1.0f32; 30];
+    let mut white_values = [1.0f32; 32];
+    let mut black_values = [1.0f32; 32];
 
     for (key, value) in white_values_dict.iter() {
         let id: String = key.extract()?;

@@ -14,7 +14,7 @@ use clap::Args;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
-use hexwar_core::{AlphaBetaAI, GameResult, GameState, Heuristics, Move, RuleSet};
+use hexwar_core::{AlphaBetaAI, GameResult, GameState, Heuristics, Move, Player, RuleSet};
 use hexwar_mcts::{MctsConfig, MctsPlayer};
 
 // ============================================================================
@@ -248,20 +248,45 @@ fn create_game_state(white_rs: &RuleSet, black_rs: &RuleSet) -> GameState {
 }
 
 /// Play game using alpha-beta AI
+///
+/// # Seed Handling
+/// Each game gets unique seeds derived from the RNG:
+/// - White AI: seed from rng
+/// - Black AI: white_seed + 1000 (ensures different play styles)
+///
+/// This ensures:
+/// 1. Each game in a match has different AI behavior
+/// 2. White and black AIs make different random choices
+/// 3. Results are reproducible when a global seed is provided
 fn play_with_alpha_beta(
     initial: GameState,
     depth: u32,
     max_rounds: u32,
-    _rng: &mut ChaCha8Rng,
+    rng: &mut ChaCha8Rng,
 ) -> (GameState, Vec<Move>) {
+    use rand::Rng;
+
+    // Generate unique seeds for this game's AIs
+    let white_seed: u64 = rng.gen();
+    let black_seed = white_seed.wrapping_add(1000);
+
     let mut state = initial;
     let mut moves = Vec::new();
     let heuristics = Heuristics::default();
-    let mut ai = AlphaBetaAI::new(depth, heuristics);
+
+    // Create separate AIs with different seeds for white and black
+    let mut white_ai = AlphaBetaAI::with_seed(depth, heuristics.clone(), white_seed);
+    let mut black_ai = AlphaBetaAI::with_seed(depth, heuristics, black_seed);
 
     let max_moves = max_rounds * 2; // Two moves per round (one per player)
 
     while state.result() == GameResult::Ongoing && moves.len() < max_moves as usize {
+        // Select the appropriate AI based on current player
+        let ai = match state.current_player() {
+            Player::White => &mut white_ai,
+            Player::Black => &mut black_ai,
+        };
+
         if let Some(mv) = ai.best_move(&state) {
             state = state.apply_move(mv);
             moves.push(mv);

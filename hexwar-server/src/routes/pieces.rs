@@ -37,6 +37,7 @@ pub async fn get_pieces() -> Json<HashMap<String, Value>> {
         ("B2", "Dancer", "STEP", 2, vec![1, 5], None, false),
         ("B3", "Ranger", "STEP", 2, vec![0, 1, 2, 3, 4, 5], None, false),
         ("B4", "Hound", "STEP", 2, vec![0, 1, 5], None, false),
+        ("B5", "Triton", "STEP", 2, vec![1, 3, 5], None, false),  // Trident pattern
         // Step-3 (C series)
         ("C1", "Lancer", "STEP", 3, vec![0], None, false),
         ("C2", "Dragoon", "STEP", 3, vec![0, 1, 5], None, false),
@@ -47,6 +48,7 @@ pub async fn get_pieces() -> Json<HashMap<String, Value>> {
         ("D3", "Bishop", "SLIDE", 9, vec![1, 2, 4, 5], None, false),
         ("D4", "Chariot", "SLIDE", 9, vec![0, 1, 5], None, false),
         ("D5", "Queen", "SLIDE", 9, vec![0, 1, 2, 3, 4, 5], None, false),
+        ("D6", "Triskelion", "SLIDE", 9, vec![1, 3, 5], None, false),  // Trident pattern
         // Jump (E/F series)
         ("E1", "Knight", "JUMP", 2, vec![0, 1, 5], None, false),
         ("E2", "Frog", "JUMP", 2, vec![0, 1, 2, 3, 4, 5], None, false),

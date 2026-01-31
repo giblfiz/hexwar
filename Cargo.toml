@@ -8,6 +8,7 @@ members = [
     "hexwar-mcts",
     "hexwar-server",
     "hexwar-cli",
+    "hexwar-nn",
 ]
 
 [workspace.package]
