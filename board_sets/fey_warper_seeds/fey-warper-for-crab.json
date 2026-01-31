@@ -1,7 +1,7 @@
 {
-  "name": "still-hammer",
+  "name": "fey-warper-for-crab",
   "ruleset": {
-    "name": "still-hammer",
+    "name": "fey-warper-for-crab",
     "white_king": "K4",
     "white_pieces": [
       "B3",
@@ -9,7 +9,7 @@
       "E2",
       "D6",
       "D6",
-      "A4",
+      "W1",
       "A4",
       "A2",
       "B3",

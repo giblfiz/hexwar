@@ -1,13 +1,13 @@
 {
-  "name": "still-hammer",
+  "name": "fey-warper-for-triskelion",
   "ruleset": {
-    "name": "still-hammer",
+    "name": "fey-warper-for-triskelion",
     "white_king": "K4",
     "white_pieces": [
       "B3",
       "E2",
       "E2",
-      "D6",
+      "W1",
       "D6",
       "A4",
       "A4",

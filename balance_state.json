@@ -1,0 +1,15 @@
+{
+  "phase": 0,
+  "phase_name": "Heuristic Re-tuning",
+  "started_at": null,
+  "last_heartbeat": null,
+  "current_evolution": null,
+  "completed_phases": [],
+  "best_champions": {
+    "orc": null,
+    "fey": null,
+    "necro": "board_sets/the_necromancer.json"
+  },
+  "issues": [],
+  "notes": "Starting three-team balance project. See docs/THREE_TEAM_BALANCE_ARCHITECTURE.md"
+}

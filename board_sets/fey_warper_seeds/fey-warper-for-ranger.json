@@ -1,10 +1,10 @@
 {
-  "name": "still-hammer",
+  "name": "fey-warper-for-ranger",
   "ruleset": {
-    "name": "still-hammer",
+    "name": "fey-warper-for-ranger",
     "white_king": "K4",
     "white_pieces": [
-      "B3",
+      "W1",
       "E2",
       "E2",
       "D6",

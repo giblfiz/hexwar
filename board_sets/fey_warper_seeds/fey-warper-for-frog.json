@@ -1,11 +1,11 @@
 {
-  "name": "still-hammer",
+  "name": "fey-warper-for-frog",
   "ruleset": {
-    "name": "still-hammer",
+    "name": "fey-warper-for-frog",
     "white_king": "K4",
     "white_pieces": [
       "B3",
-      "E2",
+      "W1",
       "E2",
       "D6",
       "D6",
