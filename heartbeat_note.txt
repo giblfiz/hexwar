@@ -1,0 +1,16 @@
+=== Note for next heartbeat ===
+Time: 2026-01-31 20:20 UTC
+
+RUNNING:
+- fey_warper_evolution (PID 289776): Gen ~13/30, expect completion ~23:00 UTC
+
+COMPLETED:
+- fey_vs_necro_overnight: 100 gens, 5 champions in fey_vs_necro_overnight/champions/
+- Phase 0 heuristic fix
+
+WATCH FOR:
+- Warper evolution completing (check for output dir fey_warper_evolution_jan31_1737/)
+- When done, start Phase 1 diagnostic
+
+STATE FILE: balance_state.json
+LOG FILE: autonomous_log.md
