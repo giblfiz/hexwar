@@ -33,3 +33,14 @@
 - Rebuilt hexwar-core
 - Note: Running evolutions use the OLD heuristic (before fix)
 
+### 2026-01-31 18:59 - fey_vs_necro_overnight COMPLETED
+- Reached generation 100/100
+- Best fitness: 0.79 (gen 99), final: 0.76
+- 5 champions saved
+- Champion has: Warper, 2x Frog, 2x Triskelion, 2x Crab, Ranger, Courser
+
+### 2026-01-31 20:16 - Status Check
+- Heartbeat was broken (cron couldn't find claude) - FIXED with PATH
+- Warper evolution at gen 13/30, best fitness 0.36 (multi-depth is strict)
+- ETA for warper completion: ~3 hours
+
