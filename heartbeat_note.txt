@@ -1,33 +1,33 @@
 === Note for next heartbeat ===
-Time: 2026-02-01 01:31 UTC
+Time: 2026-02-01 03:15 UTC
 
 MODE: FULLY AUTONOMOUS - NEVER BE IDLE! Always progress the pipeline!
 
+TERMINOLOGY REMINDER:
+- FITNESS = balance score (1.0 = perfect 50/50, 0.0 = one-sided)
+- FITNESS IS NOT WIN RATE - don't confuse them!
+- High fitness = even/balanced matchup, which is the GOAL
+
 CURRENTLY RUNNING:
 - orc_vs_fey_extended (PID 332728)
-- 100 generations at D5, population 20
-- Target: Evolve Orcs to beat dominant Fey (87-94% win rate)
-- Log: orc_vs_fey_extended.log
-- Output: orc_vs_fey_extended_0201_0130/
+- 100 generations at D5, population 20, 12 games/eval
+- Started: 01:30 UTC
+- Progress at 03:15: Generation ~57 of 100 (57%)
+- Best fitness: 0.789 (meaning ~60/40 balance - good!)
+- Average fitness: 0.778 (population converging)
+- ETA completion: ~05:25 UTC
 
-PROBLEM BEING SOLVED:
-- Fey champion is overpowered (wins 87-94% of games)
-- Previous Orc evolution only got to 31% win rate
-- This extended run should find stronger Orc compositions
+FITNESS TRAJECTORY:
+- Gen 1: 0.231 (very imbalanced)
+- Gen 22: 0.579 (getting better)
+- Gen 49: 0.789 (breakthrough - reasonably balanced!)
+- Current: 0.789 (holding steady)
 
 WHEN EVOLUTION COMPLETES:
-1. Check fitness - target > 0.60 for decent balance
-2. Run diagnostic: evolved Orc vs Fey, vs Necro
-3. If still imbalanced, consider:
-   - Evolving Necro to counter Fey
-   - Manual Fey nerf (remove pieces)
-   - Another Orc evolution round
-4. Push results to display
+1. Check final fitness - target > 0.70 for decent balance
+2. Run validation at D6 to confirm
+3. If Orc-Fey balanced, check Orc-Necro and Fey-Necro
+4. Continue cyclic refinement as needed
+5. Push results to display
 
-CRITICAL RULE: Never leave system idle! Always have something running!
-
-Timeline estimate:
-- D5 with 100 gens, pop 20, 12 games = several hours
-- Check back every heartbeat for progress
-
-STATE FILE: balance_state.json
+CRITICAL: Never leave system idle! Always have something running!
