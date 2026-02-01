@@ -50,3 +50,10 @@
 - Orc vs Necro, Necro vs Fey, Fey vs Orc
 - 16 games each, ~5-10 min expected
 - Results will go to diagnostic_jan31/
+
+### 2026-02-01 01:31 - Extended Orc Evolution Started
+- Problem: Fey champion is OP (87-94% win rate)
+- Solution: Longer evolution (100 gens) at higher depth (D5)
+- Fixed black: Fey champion
+- Seeds: orc_seeds/
+- PID: 332728

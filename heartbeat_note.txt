@@ -1,28 +1,33 @@
 === Note for next heartbeat ===
-Time: 2026-01-31 23:14 UTC
+Time: 2026-02-01 01:31 UTC
 
-MODE: FULLY AUTONOMOUS - Never wait for user input!
+MODE: FULLY AUTONOMOUS - NEVER BE IDLE! Always progress the pipeline!
 
-CURRENTLY RUNNING - Phase 1 Diagnostic:
-- 3 matchups running in parallel (PIDs: 315370, 315372, 315374)
-- Orc vs Necro: diagnostic_jan31/orc_vs_necro.json
-- Necro vs Fey: diagnostic_jan31/necro_vs_fey.json  
-- Fey vs Orc: diagnostic_jan31/fey_vs_orc.json
-- Each is 16 games at D6, should take ~5-10 min total
+CURRENTLY RUNNING:
+- orc_vs_fey_extended (PID 332728)
+- 100 generations at D5, population 20
+- Target: Evolve Orcs to beat dominant Fey (87-94% win rate)
+- Log: orc_vs_fey_extended.log
+- Output: orc_vs_fey_extended_0201_0130/
 
-WHEN DIAGNOSTIC COMPLETES:
-1. Check diagnostic_jan31/*.json for results
-2. Calculate fitness scores for each matchup
-3. Identify which matchup needs most work
-4. If Orc-Necro is worst: Start Phase 2 (Fix Orc-Necro)
-5. Push status to display
+PROBLEM BEING SOLVED:
+- Fey champion is overpowered (wins 87-94% of games)
+- Previous Orc evolution only got to 31% win rate
+- This extended run should find stronger Orc compositions
 
-COMPLETED SO FAR:
-- Phase 0: Heuristic fix (B5/D6 values)
-- fey_vs_necro_overnight: 100 gens, 0.76 fitness
-- fey_warper_evolution: 30 gens, 0.34 fitness
+WHEN EVOLUTION COMPLETES:
+1. Check fitness - target > 0.60 for decent balance
+2. Run diagnostic: evolved Orc vs Fey, vs Necro
+3. If still imbalanced, consider:
+   - Evolving Necro to counter Fey
+   - Manual Fey nerf (remove pieces)
+   - Another Orc evolution round
+4. Push results to display
+
+CRITICAL RULE: Never leave system idle! Always have something running!
+
+Timeline estimate:
+- D5 with 100 gens, pop 20, 12 games = several hours
+- Check back every heartbeat for progress
 
 STATE FILE: balance_state.json
-ARCHITECTURE: docs/THREE_TEAM_BALANCE_ARCHITECTURE.md
-
-REMEMBER: Don't wait for user - keep the pipeline moving!
