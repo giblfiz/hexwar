@@ -1,18 +1,42 @@
 {
-  "phase": 1,
-  "phase_name": "Diagnostic - Baseline Measurements",
+  "phase": 4,
+  "phase_name": "Post-Evolution Diagnostics Complete",
   "started_at": "2026-01-31T23:15:00Z",
-  "last_heartbeat": "2026-01-31T23:10:00Z",
-  "completed_phases": [0],
+  "last_heartbeat": "2026-02-01T00:07:00Z",
+  "completed_phases": [0, 1, 2, 3],
+  "diagnostic_results": {
+    "baseline": {
+      "orc_vs_necro": {"white_wins": 6, "black_wins": 10, "balance": 0.75},
+      "fey_vs_necro": {"white_wins": 10, "black_wins": 6, "balance": 0.75},
+      "fey_vs_orc": {"white_wins": 10, "black_wins": 6, "balance": 0.75}
+    },
+    "post_evolution": {
+      "evolved_orc_vs_necro": {"orc_wins": 5, "necro_wins": 11, "orc_wr": 0.312, "balance": 0.62},
+      "fey_vs_evolved_orc": {"fey_wins": 15, "orc_wins": 1, "orc_wr": 0.062, "balance": 0.12},
+      "fey_vs_necro": {"fey_wins": 14, "necro_wins": 2, "fey_wr": 0.875, "balance": 0.25}
+    }
+  },
+  "analysis": "Fey champion is DOMINANT (87-94% win rate). Evolved Orc is WEAK (6-31% win rate). 30 gen evolution insufficient. Fey army may need manual nerfing.",
   "completed_evolutions": [
     {"name": "fey_vs_necro_overnight", "gens": 100, "fitness": 0.76},
-    {"name": "fey_warper_evolution_jan31_1737", "gens": 30, "fitness": 0.34}
+    {"name": "fey_warper_evolution_jan31_1737", "gens": 30, "fitness": 0.34},
+    {"name": "orc_evolution_jan31_2330", "gens": 30, "fitness": 0.303, "note": "Evolved Orcs vs Fey champion at D4"}
   ],
   "best_champions": {
-    "orc": "board_sets/the_orcs.json",
+    "orc": "orc_evolution_jan31_2330/champions/champion_1.json",
     "fey": "fey_vs_necro_overnight/champions/champion_1.json",
-    "necro": "board_sets/the_necromancer.json"
+    "necro": "board_sets/the_necromancer_ruleset.json"
   },
-  "current_task": "Running diagnostic matchups at D6",
-  "notes": "Autonomous mode - never wait for user input"
+  "army_compositions": {
+    "evolved_orc": "4x Guard (A2) + 1x Lancer (C1)",
+    "fey_champion": "Warpers, Enchanters, Summoners, Rangers",
+    "necromancer": "Ghost, Phoenixes, Pikes, Rangers"
+  },
+  "bug_fixes_applied": [
+    "pieces.py: Added INDEX_TO_ID and normalize_piece_id() for int->str conversion",
+    "evolution.py: Added _normalize_position() for dict->tuple position conversion",
+    "tournament.py: Convert piece IDs to strings before passing to Rust"
+  ],
+  "next_action": "Consider: (1) Longer Orc evolution (60+ gens), (2) Evolve Necro vs Fey, or (3) Manual Fey nerf",
+  "notes": "Phase 3 diagnostics complete. Fey army is overpowered. Need balancing intervention."
 }

@@ -136,25 +136,63 @@ REGULAR_PIECE_IDS = tuple(k for k, v in PIECE_TYPES.items() if not v.is_king)
 KING_IDS = tuple(k for k, v in PIECE_TYPES.items() if v.is_king)
 SPECIAL_PIECE_IDS = tuple(k for k, v in PIECE_TYPES.items() if v.special is not None)
 
+# Index to ID mapping (matches Rust PIECE_TYPES array order)
+# Used to convert numeric indices from Rust back to string IDs
+INDEX_TO_ID: tuple[str, ...] = (
+    # Step-1 (0-4)
+    'A1', 'A2', 'A3', 'A4', 'A5',
+    # Step-2 (5-8)
+    'B1', 'B2', 'B3', 'B4',
+    # Step-3 (9-11)
+    'C1', 'C2', 'C3',
+    # Slide (12-16)
+    'D1', 'D2', 'D3', 'D4', 'D5',
+    # Jump (17-20)
+    'E1', 'E2', 'F1', 'F2',
+    # Special (21-24)
+    'W1', 'W2', 'P1', 'G1',
+    # Kings (25-29)
+    'K1', 'K2', 'K3', 'K4', 'K5',
+    # Trident pieces (30-31)
+    'B5', 'D6',
+)
 
-def get_piece_type(type_id: str) -> PieceType:
-    """Get a piece type definition by ID."""
-    return PIECE_TYPES[type_id]
+# Reverse mapping: string ID to index
+ID_TO_INDEX: dict[str, int] = {id_: idx for idx, id_ in enumerate(INDEX_TO_ID)}
 
 
-def is_king(type_id: str) -> bool:
-    """Check if a piece type is a king variant."""
-    return PIECE_TYPES[type_id].is_king
+def normalize_piece_id(type_id) -> str:
+    """Convert a piece ID to string format.
+
+    Accepts either:
+    - String ID (e.g., 'A1', 'K1') - returned as-is
+    - Integer index (e.g., 0, 25) - converted to string ID
+    """
+    if isinstance(type_id, str):
+        return type_id
+    if isinstance(type_id, int) and 0 <= type_id < len(INDEX_TO_ID):
+        return INDEX_TO_ID[type_id]
+    raise ValueError(f"Invalid piece ID: {type_id}")
 
 
-def has_special(type_id: str) -> bool:
-    """Check if a piece type has a special ability."""
-    return PIECE_TYPES[type_id].special is not None
+def get_piece_type(type_id) -> PieceType:
+    """Get a piece type definition by ID (accepts int index or string ID)."""
+    return PIECE_TYPES[normalize_piece_id(type_id)]
 
 
-def get_special(type_id: str) -> SpecialType:
-    """Get the special ability type for a piece, or None."""
-    return PIECE_TYPES[type_id].special
+def is_king(type_id) -> bool:
+    """Check if a piece type is a king variant (accepts int index or string ID)."""
+    return PIECE_TYPES[normalize_piece_id(type_id)].is_king
+
+
+def has_special(type_id) -> bool:
+    """Check if a piece type has a special ability (accepts int index or string ID)."""
+    return PIECE_TYPES[normalize_piece_id(type_id)].special is not None
+
+
+def get_special(type_id) -> SpecialType:
+    """Get the special ability type for a piece, or None (accepts int index or string ID)."""
+    return PIECE_TYPES[normalize_piece_id(type_id)].special
 
 
 @dataclass

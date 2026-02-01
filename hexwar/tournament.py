@@ -109,10 +109,13 @@ def _play_game_batch(args: tuple) -> list[MatchResult]:
                 "Rebuild with: cd hexwar_core && maturin develop --release"
             )
 
+        from hexwar.pieces import normalize_piece_id
         white_pieces = []
         black_pieces = []
         for (q, r), piece in state.board.items():
-            entry = (piece.type_id, (q, r), piece.facing)
+            # Normalize type_id to string for Rust module
+            type_id_str = normalize_piece_id(piece.type_id)
+            entry = (type_id_str, (q, r), piece.facing)
             if piece.owner == 0:
                 white_pieces.append(entry)
             else:
@@ -159,10 +162,13 @@ def _play_single_game(args: tuple) -> MatchResult:
         )
 
     # Extract pieces for Rust
+    from hexwar.pieces import normalize_piece_id
     white_pieces = []
     black_pieces = []
     for (q, r), piece in state.board.items():
-        entry = (piece.type_id, (q, r), piece.facing)
+        # Normalize type_id to string for Rust module
+        type_id_str = normalize_piece_id(piece.type_id)
+        entry = (type_id_str, (q, r), piece.facing)
         if piece.owner == 0:
             white_pieces.append(entry)
         else:

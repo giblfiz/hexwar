@@ -412,6 +412,18 @@ def ruleset_to_genome(rs: RuleSet) -> dict:
     return genome
 
 
+def _normalize_position(p) -> tuple[int, int]:
+    """Convert a position to (q, r) tuple.
+
+    Handles both:
+    - Dict format: {'q': 0, 'r': 3}
+    - Tuple/list format: [0, 3] or (0, 3)
+    """
+    if isinstance(p, dict):
+        return (p['q'], p['r'])
+    return tuple(p)
+
+
 def genome_to_ruleset(genome: dict) -> RuleSet:
     """Convert genome dict back to RuleSet."""
     white_pos = None
@@ -419,9 +431,9 @@ def genome_to_ruleset(genome: dict) -> RuleSet:
     white_facings = None
     black_facings = None
     if 'white_positions' in genome:
-        white_pos = [tuple(p) for p in genome['white_positions']]
+        white_pos = [_normalize_position(p) for p in genome['white_positions']]
     if 'black_positions' in genome:
-        black_pos = [tuple(p) for p in genome['black_positions']]
+        black_pos = [_normalize_position(p) for p in genome['black_positions']]
     if 'white_facings' in genome:
         white_facings = list(genome['white_facings'])
     if 'black_facings' in genome:
